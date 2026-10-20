@@ -1,0 +1,30 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { Catalog } from '@/features/catalog/Catalog'
+import { Hero } from '@/features/catalog/Hero'
+import { Journal, PromoBanners } from '@/features/catalog/HomeExtras'
+import { featuredQuery, nftListQuery } from '@/features/catalog/queries'
+import { catalogSearchSchema, toApiQuery } from '@/features/catalog/search'
+
+export const Route = createFileRoute('/')({
+  validateSearch: catalogSearchSchema,
+  loaderDeps: ({ search }) => search,
+  // prefetch sem bloquear a navegação: skeletons aparecem enquanto a API responde
+  loader: ({ context, deps }) => {
+    void context.queryClient.prefetchQuery(nftListQuery(toApiQuery(deps)))
+    void context.queryClient.prefetchQuery(featuredQuery)
+  },
+  head: () => ({ meta: [{ title: 'Kurio — Marketplace de NFTs' }] }),
+  component: HomePage,
+})
+
+function HomePage() {
+  const search = Route.useSearch()
+  return (
+    <>
+      <Hero />
+      <Catalog search={search} />
+      <PromoBanners />
+      <Journal />
+    </>
+  )
+}

@@ -1,0 +1,12 @@
+node_modules
+dist
+*.local
+.env.local
+test-results
+playwright-report
+blob-report
+playwright/.cache
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+*.tsbuildinfo

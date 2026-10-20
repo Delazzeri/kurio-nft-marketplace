@@ -1,0 +1,6 @@
+/* Estabiliza capturas de regressão visual: remove ferramentas de QA e elementos transitórios. */
+[aria-label^='Abrir painel de cenários'],
+[aria-label='Painel de cenários de mock'],
+[data-sonner-toaster] {
+  display: none !important;
+}

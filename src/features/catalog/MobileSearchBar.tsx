@@ -28,6 +28,7 @@ export function MobileSearchBar({ search, onOpenFilters, activeFilters }: { sear
         />
       </form>
       <button
+        id="abrir-filtros-mobile"
         type="button"
         onClick={onOpenFilters}
         aria-label={`Filtros e ordenação${activeFilters ? `, ${activeFilters} ativos` : ''}`}

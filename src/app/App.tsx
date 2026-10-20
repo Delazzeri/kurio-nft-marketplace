@@ -6,6 +6,7 @@ import { NotFound } from '@/components/states'
 import { RealtimeProvider } from '@/realtime/RealtimeProvider'
 import { routeTree } from '@/routeTree.gen'
 import { queryClient } from './query-client'
+import { parseSearch, stringifySearch } from './search-params'
 
 export const router = createRouter({
   routeTree,
@@ -14,6 +15,8 @@ export const router = createRouter({
   // o Query já faz cache; o loader do router só garante os dados
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,
+  parseSearch,
+  stringifySearch,
   defaultNotFoundComponent: () => <NotFound />,
 })
 

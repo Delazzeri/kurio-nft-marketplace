@@ -23,12 +23,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function useFocusOnNavigate() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const mainRef = useRef<HTMLElement>(null)
-  const first = useRef(true)
+  // compara com o pathname anterior (e não com um flag de "primeira vez", que o StrictMode quebra)
+  const previous = useRef(pathname)
   useEffect(() => {
-    if (first.current) {
-      first.current = false
-      return
-    }
+    if (previous.current === pathname) return
+    previous.current = pathname
     mainRef.current?.focus({ preventScroll: true })
   }, [pathname])
   return mainRef

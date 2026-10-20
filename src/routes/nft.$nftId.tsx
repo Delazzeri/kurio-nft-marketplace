@@ -194,7 +194,7 @@ function DetailBody({ nft }: { nft: NftDetail }) {
             <h1 id="nft-titulo" className="text-xl font-bold">
               {nft.name}
             </h1>
-            <span className="inline-flex items-center gap-1 rounded-full border border-primary px-2 py-0.5 text-sm" aria-label={`Nota ${nft.rating} de 5, ${nft.reviewsCount} avaliações`}>
+            <span role="img" className="inline-flex items-center gap-1 rounded-full border border-primary px-2 py-0.5 text-sm" aria-label={`Nota ${nft.rating} de 5, ${nft.reviewsCount} avaliações`}>
               <Star aria-hidden className="size-4 fill-primary text-primary" /> <b>{nft.rating}</b>({nft.reviewsCount})
             </span>
           </div>
@@ -305,7 +305,7 @@ function DetailBody({ nft }: { nft: NftDetail }) {
                 <Price value={edition.price} compareAt={edition.compareAtPrice} className="text-xl" />
                 {priceFlash && <span className="ml-2 text-xs text-price">Preço atualizado</span>}
               </span>
-              <span className="flex items-center gap-1 text-sm" aria-label={`Nota ${nft.rating} de 5, ${nft.reviewsCount} avaliações de colecionadores`}>
+              <span role="img" className="flex items-center gap-1 text-sm" aria-label={`Nota ${nft.rating} de 5, ${nft.reviewsCount} avaliações de colecionadores`}>
                 {Array.from({ length: 5 }, (_, i) => (
                   <Star key={i} aria-hidden className="size-3.5 fill-primary text-primary" />
                 ))}

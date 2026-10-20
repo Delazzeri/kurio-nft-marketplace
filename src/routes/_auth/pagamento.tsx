@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { isApiError } from '@/api/client'
-import { buyerSchema, networkIds, networks, walletTypes, type Quote, type Wallet } from '@/api/contracts'
+import { buyerSchema, networkIds, networks, walletTypes, type Quote, type Wallet, type WalletType } from '@/api/contracts'
 import { qk } from '@/api/query-keys'
 import { useSession } from '@/auth/session-store'
 import { FormAlert, TextField } from '@/components/form'
@@ -112,6 +112,7 @@ function CheckoutPage() {
     if (session && (!wallet || session.walletId !== wallet.id || session.network !== network)) resetSession()
   }, [wallet, network, session, resetSession])
 
+  const [provider, setProvider] = useState<WalletType | null>(null)
   const [review, setReview] = useState<Quote | null>(null)
   const [reviewOpen, setReviewOpen] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -388,6 +389,7 @@ function CheckoutPage() {
             {walletTypes.map((p) => {
               const isConnected = connected && session?.provider === p.id
               const connecting = connect.isPending && connect.variables?.provider === p.id
+              const rejected = connect.isError && connect.variables?.provider === p.id
               return (
                 <div
                   key={p.id}
@@ -404,8 +406,11 @@ function CheckoutPage() {
                       type="radio"
                       name="provedor"
                       className="size-4 accent-[var(--primary)] max-lg:order-last max-lg:ml-auto"
-                      checked={isConnected || connecting}
-                      onChange={() => wallet && connect.mutate({ walletId: wallet.id, network, provider: p.id })}
+                      checked={(provider ?? (connected ? session?.provider : null)) === p.id}
+                      onChange={() => {
+                        setProvider(p.id)
+                        if (wallet) connect.mutate({ walletId: wallet.id, network, provider: p.id })
+                      }}
                     />
                     <span>{p.label}</span>
                   </label>
@@ -418,6 +423,8 @@ function CheckoutPage() {
                       <button type="button" onClick={() => disconnect.mutate()} className="flex items-center gap-1 text-success hover:underline">
                         <Unplug aria-hidden className="size-3" /> Conectada · desconectar
                       </button>
+                    ) : rejected ? (
+                      <span className="text-destructive">Recusada</span>
                     ) : null}
                   </span>
                 </div>

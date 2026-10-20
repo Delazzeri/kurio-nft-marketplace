@@ -145,10 +145,10 @@ function Receipt({ order }: { order: Order }) {
                 <th scope="col" className="py-2 font-bold">
                   NFTs
                 </th>
-                <th scope="col" className="py-2 text-center font-bold">
+                <th scope="col" className="px-2 py-2 text-center font-bold">
                   Edições
                 </th>
-                <th scope="col" className="py-2 text-right font-bold">
+                <th scope="col" className="py-2 pl-2 text-right font-bold">
                   Subtotal
                 </th>
               </tr>
@@ -167,8 +167,8 @@ function Receipt({ order }: { order: Order }) {
                       </div>
                     </div>
                   </td>
-                  <td className="py-2 text-center">(x {i.quantity})</td>
-                  <td className="py-2 text-right font-bold text-price">{formatEth(i.lineTotal)}</td>
+                  <td className="px-2 py-2 text-center whitespace-nowrap">(x {i.quantity})</td>
+                  <td className="py-2 pl-2 text-right font-bold whitespace-nowrap text-price">{formatEth(i.lineTotal)}</td>
                 </tr>
               ))}
             </tbody>

@@ -100,12 +100,12 @@ export const scenarios: Scenario[] = [
   {
     id: 'instavel',
     label: 'Instável (503 e recupera)',
-    description: 'As 3 primeiras chamadas de catálogo retornam 503; novas tentativas funcionam.',
+    description: 'As 3 primeiras listagens do catálogo retornam 503 (esgota os retries); a nova tentativa funciona.',
     latency: [150, 300],
     failures: [
       {
         method: 'GET',
-        path: /^\/api\/nfts/,
+        path: /^\/api\/nfts$/,
         times: 3,
         effect: { kind: 'http', status: 503, code: 'SERVICE_UNAVAILABLE', message: 'Serviço temporariamente indisponível.', retryable: true },
       },

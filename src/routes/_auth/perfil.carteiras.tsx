@@ -142,6 +142,8 @@ function WalletsPage() {
   const { data, isPending, error, refetch } = useWallets()
   const { mirror, removeSecondary } = useWalletMutations()
   const [editingSecondary, setEditingSecondary] = useState(false)
+  /** escolha refletida na hora; volta ao valor do servidor quando a API responde */
+  const [pendingSame, setPendingSame] = useState<boolean | null>(null)
 
   if (isPending) return <div className="skeleton h-96" aria-busy="true" aria-label="Carregando carteiras" />
   if (!data) return <ErrorState error={error} onRetry={() => void refetch()} />
@@ -171,13 +173,18 @@ function WalletsPage() {
               <input
                 type="checkbox"
                 className="size-4 accent-[var(--primary)]"
-                checked={sameAsPrimary}
+                checked={pendingSame ?? sameAsPrimary}
                 disabled={!data.primary || mirror.isPending || removeSecondary.isPending}
                 onChange={(e) => {
                   setEditingSecondary(false)
-                  const onError = (err: unknown) => toast.error(isApiError(err) ? err.message : 'Não foi possível atualizar.')
-                  if (e.target.checked) mirror.mutate(undefined, { onError })
-                  else removeSecondary.mutate(undefined, { onError })
+                  const next = e.target.checked
+                  setPendingSame(next)
+                  const opts = {
+                    onError: (err: unknown) => toast.error(isApiError(err) ? err.message : 'Não foi possível atualizar.'),
+                    onSettled: () => setPendingSame(null),
+                  }
+                  if (next) mirror.mutate(undefined, opts)
+                  else removeSecondary.mutate(undefined, opts)
                 }}
               />
               Igual à carteira principal

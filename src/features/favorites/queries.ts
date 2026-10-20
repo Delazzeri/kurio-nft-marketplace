@@ -40,11 +40,17 @@ export function useToggleFavorite() {
       return { previous }
     },
     onError: (error, vars, context) => {
-      client.setQueryData(key, context?.previous)
+      // rollback (se ainda não havia cache, descarta o otimista e busca do servidor)
+      if (context?.previous) client.setQueryData(key, context.previous)
+      else client.removeQueries({ queryKey: key, exact: true })
       const action = vars.favorite ? 'Não foi possível favoritar' : 'Não foi possível remover dos favoritos'
       const message = `${action} ${vars.name}. ${isApiError(error) ? error.message : ''}`.trim()
       toast.error(message, { action: { label: 'Tentar novamente', onClick: () => mutation.mutate(vars) } })
       announce(message, 'assertive')
+    },
+    onSettled: () => {
+      // reconcilia com o servidor ao fim de qualquer tentativa
+      void client.invalidateQueries({ queryKey: key })
     },
     onSuccess: (data, vars) => {
       client.setQueryData(key, data)

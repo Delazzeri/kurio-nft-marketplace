@@ -118,7 +118,18 @@ export function Catalog({
                     <SlidersHorizontal aria-hidden /> Filtros{activeChips.length ? ` (${activeChips.length})` : ''}
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-[88vw] max-w-sm overflow-y-auto border-border bg-background">
+                <SheetContent
+                  side="left"
+                  className="w-[88vw] max-w-sm overflow-y-auto border-border bg-background"
+                  onCloseAutoFocus={(e) => {
+                    // no mobile o drawer é aberto pelo botão da barra de busca (fora do Sheet)
+                    const opener = document.getElementById('abrir-filtros-mobile')
+                    if (opener && opener.offsetParent !== null) {
+                      e.preventDefault()
+                      opener.focus()
+                    }
+                  }}
+                >
                   <SheetHeader>
                     <SheetTitle>Filtros</SheetTitle>
                     <SheetDescription>Os resultados são atualizados a cada seleção.</SheetDescription>

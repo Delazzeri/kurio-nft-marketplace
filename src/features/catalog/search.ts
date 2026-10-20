@@ -4,7 +4,7 @@ import { catalogTabIds, categoryIds, networkIds, sortIds, type NftListQuery } fr
 const arrayOf = <T extends string>(values: readonly [T, ...T[]]) =>
   z
     .union([z.array(z.string()), z.string()])
-    .transform((v) => (Array.isArray(v) ? v : [v]).filter((x): x is T => (values as readonly string[]).includes(x)))
+    .transform((v) => (Array.isArray(v) ? v : v.split(',')).filter((x): x is T => (values as readonly string[]).includes(x)))
     .transform((v) => (v.length ? [...new Set(v)].sort() : undefined))
     .optional()
     .catch(undefined)

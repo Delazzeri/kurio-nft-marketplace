@@ -1,5 +1,6 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 import { authService } from '@/auth/auth-service'
+import { sessionStore } from '@/auth/session-store'
 
 /**
  * Layout sem path que protege checkout, pedidos, perfil e carteiras.
@@ -10,7 +11,8 @@ export const Route = createFileRoute('/_auth')({
   beforeLoad: async ({ location }) => {
     const user = await authService.ensureSession()
     if (!user) {
-      throw redirect({ to: '/entrar', search: { redirect: location.href } })
+      const expired = sessionStore.get().endedBy === 'expired'
+      throw redirect({ to: '/entrar', search: { redirect: location.href, motivo: expired ? 'expirada' : undefined } })
     }
     return { user }
   },

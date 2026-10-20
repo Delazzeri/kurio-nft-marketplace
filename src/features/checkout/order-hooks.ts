@@ -47,16 +47,16 @@ const TRANSIENT = new Set(['TIMEOUT', 'NETWORK_ERROR', 'SERVICE_UNAVAILABLE'])
 export function useSubmitOrder() {
   const { user } = useSession()
   const client = useQueryClient()
-  const inFlight = useRef(false)
+  /** Envio em andamento: chamadas concorrentes (clique repetido) reutilizam a MESMA promessa */
+  const inFlight = useRef<Promise<Order> | null>(null)
 
   return useMutation({
     mutationFn: async (input: CreateOrderInput): Promise<Order> => {
       if (!user) throw new ApiError({ status: 401, code: 'UNAUTHENTICATED', message: 'Faça login para continuar.' })
-      // trava contra clique repetido (além do botão desabilitado)
-      if (inFlight.current) throw new ApiError({ status: 0, code: 'CONFLICT', message: 'Pedido já está sendo enviado.' })
-      inFlight.current = true
+      // clique repetido antes de a UI desabilitar o botão: não cria outra requisição
+      if (inFlight.current) return inFlight.current
       const key = idempotencyKeyFor(user.id, input)
-      try {
+      const run = async (): Promise<Order> => {
         // reenvio automático só para falhas transitórias — seguro pela chave de idempotência
         for (let attempt = 0; ; attempt++) {
           try {
@@ -70,9 +70,11 @@ export function useSubmitOrder() {
             throw error
           }
         }
-      } finally {
-        inFlight.current = false
       }
+      inFlight.current = run().finally(() => {
+        inFlight.current = null
+      })
+      return inFlight.current
     },
     onSuccess: (order) => {
       if (!user) return

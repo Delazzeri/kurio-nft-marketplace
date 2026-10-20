@@ -22,6 +22,8 @@ async function afterAuthentication(session: Session) {
   // preserva os itens do visitante: mescla no carrinho do usuário
   try {
     const merged = await api.cart.merge(guestId)
+    // um GET do carrinho iniciado antes da mescla não pode sobrescrever o resultado (corrida)
+    await queryClient.cancelQueries({ queryKey: qk.cart(session.user.id) })
     queryClient.setQueryData(qk.cart(session.user.id), merged)
   } catch {
     void queryClient.invalidateQueries({ queryKey: qk.cartAll })

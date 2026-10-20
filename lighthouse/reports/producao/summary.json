@@ -1,6 +1,6 @@
 {
   "environment": {
-    "date": "2026-10-20T19:38:41.230Z",
+    "date": "2026-10-20T19:49:37.958Z",
     "url": "https://kurio-nft-marketplace-five.vercel.app",
     "lighthouse": "13.5.0",
     "chrome": "Chrome/156.0.8078.4",
@@ -25,27 +25,27 @@
       "path": "/",
       "profile": "mobile",
       "median": {
-        "performance": 88,
+        "performance": 89,
         "accessibility": 100,
         "best-practices": 100,
         "seo": 100
       },
       "metrics": {
-        "LCP": 2998.408,
-        "CLS": 0.02162021705847527,
-        "TBT": 165,
-        "FCP": 2487.3627,
-        "SI": 2834.745718000914
+        "LCP": 2899.5371,
+        "CLS": 0.0001306429833212516,
+        "TBT": 166,
+        "FCP": 2449.5371,
+        "SI": 2569.4972
       },
       "runs": [
         {
-          "performance": 88,
+          "performance": 83,
           "accessibility": 100,
           "best-practices": 100,
           "seo": 100
         },
         {
-          "performance": 87,
+          "performance": 89,
           "accessibility": 100,
           "best-practices": 100,
           "seo": 100
@@ -69,11 +69,11 @@
         "seo": 100
       },
       "metrics": {
-        "LCP": 785.9293,
+        "LCP": 735.9881,
         "CLS": 0.00146658021902457,
-        "TBT": 6,
-        "FCP": 698.9293,
-        "SI": 839.0040787645019
+        "TBT": 0,
+        "FCP": 606.9881,
+        "SI": 671.2580998637984
       },
       "runs": [
         {
@@ -101,17 +101,17 @@
       "path": "/nft/emerald-ape-042",
       "profile": "mobile",
       "median": {
-        "performance": 90,
+        "performance": 87,
         "accessibility": 99,
         "best-practices": 100,
         "seo": 100
       },
       "metrics": {
-        "LCP": 2801.0212,
+        "LCP": 3002.6443,
         "CLS": 0,
-        "TBT": 126.5,
-        "FCP": 2554.7182000000003,
-        "SI": 2573.7064
+        "TBT": 224,
+        "FCP": 2595.0941000000003,
+        "SI": 2595.0941000000003
       },
       "runs": [
         {
@@ -121,13 +121,13 @@
           "seo": 100
         },
         {
-          "performance": 90,
+          "performance": 87,
           "accessibility": 99,
           "best-practices": 100,
           "seo": 100
         },
         {
-          "performance": 86,
+          "performance": 85,
           "accessibility": 99,
           "best-practices": 100,
           "seo": 100
@@ -145,11 +145,11 @@
         "seo": 100
       },
       "metrics": {
-        "LCP": 635.1992,
+        "LCP": 642.8288,
         "CLS": 0.00536360388624905,
         "TBT": 0,
-        "FCP": 572.4513,
-        "SI": 636.0336686721209
+        "FCP": 579.4386,
+        "SI": 617.611944704815
       },
       "runs": [
         {
@@ -179,143 +179,143 @@
       "profile": "mobile",
       "run": 1,
       "scores": {
-        "performance": 88,
+        "performance": 83,
         "accessibility": 100,
         "best-practices": 100,
         "seo": 100
       },
       "metrics": {
-        "LCP": 3079.1594999999998,
-        "CLS": 0.02175086004179652,
-        "TBT": 165,
-        "FCP": 2667.6594999999998,
-        "SI": 2834.745718000914
+        "LCP": 3023.3355,
+        "CLS": 0.0001306429833212516,
+        "TBT": 348.5,
+        "FCP": 2257.8355,
+        "SI": 2863.670467997451
       }
     },
     {
       "page": "inicio",
+      "profile": "mobile",
+      "run": 2,
+      "scores": {
+        "performance": 89,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 2877.4972,
+        "CLS": 0.0001306429833212516,
+        "TBT": 166,
+        "FCP": 2569.4972,
+        "SI": 2569.4972
+      }
+    },
+    {
+      "page": "inicio",
+      "profile": "mobile",
+      "run": 3,
+      "scores": {
+        "performance": 91,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 2899.5371,
+        "CLS": 0.0001306429833212516,
+        "TBT": 89.5,
+        "FCP": 2449.5371,
+        "SI": 2449.5371
+      }
+    },
+    {
+      "page": "inicio",
+      "profile": "desktop",
+      "run": 1,
+      "scores": {
+        "performance": 99,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 735.9881,
+        "CLS": 0.00146658021902457,
+        "TBT": 0,
+        "FCP": 606.9881,
+        "SI": 671.153880462313
+      }
+    },
+    {
+      "page": "inicio",
+      "profile": "desktop",
+      "run": 2,
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 692.4025,
+        "CLS": 0.00146658021902457,
+        "TBT": 0,
+        "FCP": 577.4025,
+        "SI": 679.7163606515173
+      }
+    },
+    {
+      "page": "inicio",
+      "profile": "desktop",
+      "run": 3,
+      "scores": {
+        "performance": 99,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 758.747,
+        "CLS": 0.00146658021902457,
+        "TBT": 0,
+        "FCP": 659.247,
+        "SI": 671.2580998637984
+      }
+    },
+    {
+      "page": "detalhe",
+      "profile": "mobile",
+      "run": 1,
+      "scores": {
+        "performance": 91,
+        "accessibility": 99,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 2820.0941000000003,
+        "CLS": 0,
+        "TBT": 106,
+        "FCP": 2595.0941000000003,
+        "SI": 2595.0941000000003
+      }
+    },
+    {
+      "page": "detalhe",
       "profile": "mobile",
       "run": 2,
       "scores": {
         "performance": 87,
-        "accessibility": 100,
-        "best-practices": 100,
-        "seo": 100
-      },
-      "metrics": {
-        "LCP": 2998.408,
-        "CLS": 0.02162021705847527,
-        "TBT": 223.5,
-        "FCP": 2463.408,
-        "SI": 2463.408
-      }
-    },
-    {
-      "page": "inicio",
-      "profile": "mobile",
-      "run": 3,
-      "scores": {
-        "performance": 91,
-        "accessibility": 100,
-        "best-practices": 100,
-        "seo": 100
-      },
-      "metrics": {
-        "LCP": 2712.3627,
-        "CLS": 0,
-        "TBT": 95,
-        "FCP": 2487.3627,
-        "SI": 4010.347431999916
-      }
-    },
-    {
-      "page": "inicio",
-      "profile": "desktop",
-      "run": 1,
-      "scores": {
-        "performance": 99,
-        "accessibility": 100,
-        "best-practices": 100,
-        "seo": 100
-      },
-      "metrics": {
-        "LCP": 849.0639,
-        "CLS": 0.00146658021902457,
-        "TBT": 6,
-        "FCP": 729.0639,
-        "SI": 979.6109447421728
-      }
-    },
-    {
-      "page": "inicio",
-      "profile": "desktop",
-      "run": 2,
-      "scores": {
-        "performance": 100,
-        "accessibility": 100,
-        "best-practices": 100,
-        "seo": 100
-      },
-      "metrics": {
-        "LCP": 711.1192,
-        "CLS": 0.00146658021902457,
-        "TBT": 7,
-        "FCP": 612.6192,
-        "SI": 735.8195148968307
-      }
-    },
-    {
-      "page": "inicio",
-      "profile": "desktop",
-      "run": 3,
-      "scores": {
-        "performance": 99,
-        "accessibility": 100,
-        "best-practices": 100,
-        "seo": 100
-      },
-      "metrics": {
-        "LCP": 785.9293,
-        "CLS": 0.00146658021902457,
-        "TBT": 1,
-        "FCP": 698.9293,
-        "SI": 839.0040787645019
-      }
-    },
-    {
-      "page": "detalhe",
-      "profile": "mobile",
-      "run": 1,
-      "scores": {
-        "performance": 91,
         "accessibility": 99,
         "best-practices": 100,
         "seo": 100
       },
       "metrics": {
-        "LCP": 2723.7064,
+        "LCP": 3002.6443,
         "CLS": 0,
-        "TBT": 126.5,
-        "FCP": 2573.7064,
-        "SI": 2573.7064
-      }
-    },
-    {
-      "page": "detalhe",
-      "profile": "mobile",
-      "run": 2,
-      "scores": {
-        "performance": 90,
-        "accessibility": 99,
-        "best-practices": 100,
-        "seo": 100
-      },
-      "metrics": {
-        "LCP": 2801.0212,
-        "CLS": 0,
-        "TBT": 49,
-        "FCP": 2541.0212,
-        "SI": 4033.0887146519262
+        "TBT": 224,
+        "FCP": 2533.1443,
+        "SI": 2533.1443
       }
     },
     {
@@ -323,17 +323,17 @@
       "profile": "mobile",
       "run": 3,
       "scores": {
-        "performance": 86,
+        "performance": 85,
         "accessibility": 99,
         "best-practices": 100,
         "seo": 100
       },
       "metrics": {
-        "LCP": 3017.7182000000003,
+        "LCP": 3033.6609,
         "CLS": 0,
-        "TBT": 236.5,
-        "FCP": 2554.7182000000003,
-        "SI": 2554.7182000000003
+        "TBT": 266.5,
+        "FCP": 2614.6609,
+        "SI": 2614.6609
       }
     },
     {
@@ -347,11 +347,11 @@
         "seo": 100
       },
       "metrics": {
-        "LCP": 650.3106,
+        "LCP": 644.4386,
         "CLS": 0.00536360388624905,
         "TBT": 0,
-        "FCP": 581.3106,
-        "SI": 645.3582519228105
+        "FCP": 579.4386,
+        "SI": 617.611944704815
       }
     },
     {
@@ -365,11 +365,11 @@
         "seo": 100
       },
       "metrics": {
-        "LCP": 635.1992,
+        "LCP": 625.1673000000001,
         "CLS": 0.00536360388624905,
-        "TBT": 1,
-        "FCP": 560.1992,
-        "SI": 630.1939047072931
+        "TBT": 0,
+        "FCP": 579.1673000000001,
+        "SI": 583.3077831246252
       }
     },
     {
@@ -383,11 +383,11 @@
         "seo": 100
       },
       "metrics": {
-        "LCP": 621.4513,
-        "CLS": 0.008031505636481771,
+        "LCP": 642.8288,
+        "CLS": 0.00536360388624905,
         "TBT": 0,
-        "FCP": 572.4513,
-        "SI": 636.0336686721209
+        "FCP": 599.3288,
+        "SI": 635.6479384109301
       }
     }
   ]

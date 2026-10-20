@@ -240,29 +240,52 @@ Busca, filtros, faixa de preço, aba, ordenação e página vivem na URL (`?q=&c
 
 ## 13. Performance e Lighthouse
 
-Auditoria versionada em `lighthouse/` (`pnpm lighthouse`): build otimizado servido por `vite preview`, mocks ativos no **cenário padrão**, perfil de navegador limpo por execução, **3 medições por página/perfil** e mediana por categoria. Relatórios HTML/JSON de cada execução, versões e condições em [`lighthouse/reports/`](./lighthouse/reports/summary.md).
+Auditoria versionada em `lighthouse/` — build otimizado, mocks ativos no **cenário padrão**, perfil de navegador limpo por execução, **3 medições por página/perfil** e mediana por categoria. Dois ambientes:
+
+| Comando | Ambiente | Relatórios |
+| --- | --- | --- |
+| `pnpm lighthouse` | `vite preview` local (HTTP/1.1, sem CDN) | [`lighthouse/reports/local/`](./lighthouse/reports/local/summary.md) |
+| `pnpm lighthouse:prod` | Deploy na Vercel (HTTP/2, CDN, brotli) | [`lighthouse/reports/producao/`](./lighthouse/reports/producao/summary.md) |
+
+### Resultados (mediana de 3)
+
+**Produção (Vercel)**
 
 | Página | Perfil | Performance | Accessibility | Best Practices | SEO | LCP | CLS | TBT |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Início | mobile | 71 | 100 | 100 | 100 | 4,1 s | 0,022 | 366 ms |
-| Início | desktop | 99 | 100 | 100 | 100 | 0,87 s | 0,002 | 11 ms |
-| Detalhe | mobile | 79 | 99 | 100 | 100 | 3,6 s | 0,000 | 261 ms |
-| Detalhe | desktop | 99 | 100 | 100 | 100 | 0,83 s | 0,006 | 0 ms |
+| Início | mobile | 89 | 100 | 100 | 100 | 2,9 s | 0,000 | 166 ms |
+| Início | desktop | 99 | 100 | 100 | 100 | 0,74 s | 0,001 | 0 ms |
+| Detalhe | mobile | 87 | 99 | 100 | 100 | 3,0 s | 0,000 | 224 ms |
+| Detalhe | desktop | 100 | 100 | 100 | 100 | 0,64 s | 0,005 | 0 ms |
 
-Ambiente: Lighthouse 13.5.0, Chromium 156 (Playwright), Node 24, Windows 11, i5-13420H. Mobile = Moto G Power emulado com throttling simulado (4G lento, CPU 4×); desktop = `desktop-config`.
+Execuções individuais no mobile variam de 83 a 92 (rede real até a Vercel + CPU da máquina de teste); em outra rodada com o mesmo build, as medianas foram 88 (Início) e 90 (Detalhe).
+
+**Local (`vite preview`)**
+
+| Página | Perfil | Performance | Accessibility | Best Practices | SEO | LCP | CLS | TBT |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Início | mobile | 77 | 100 | 100 | 100 | 4,2 s | 0,000 | 85 ms |
+| Início | desktop | 98 | 100 | 100 | 100 | 1,0 s | 0,001 | 0 ms |
+| Detalhe | mobile | 76 | 99 | 100 | 100 | 4,3 s | 0,000 | 56 ms |
+| Detalhe | desktop | 98 | 100 | 100 | 100 | 0,97 s | 0,005 | 0 ms |
+
+Ambiente de medição: Lighthouse 13.5.0, Chromium 156 (Playwright), Node 24, Windows 11, i5-13420H. Mobile = Moto G Power emulado, throttling simulado (4G lento, CPU 4×); desktop = `desktop-config`. O `vite preview` serve HTTP/1.1, e a simulação aplica o limite de conexões por origem — por isso a diferença para a produção (HTTP/2).
 
 ### Otimizações aplicadas (sem simplificar a entrega)
-| Mudança | Efeito medido |
+| Mudança | Efeito |
 | --- | --- |
-| Render imediato do app; REST/Socket.IO aguardam `mocksReady` | o shell e os skeletons não esperam o MSW |
-| `socket.io-client` importado sob demanda | fora do bundle crítico |
-| `modulepreload` dos chunks do App e dos mocks no HTML | downloads em paralelo com o entry |
-| Shim de `tldts` (lista de sufixos públicos usada pelo cookie store do MSW) | chunk dos mocks 366 KB → 103 KB (gzip 142 → 34 KB); LCP mobile −0,6 a −0,8 s |
-| `<main>` com altura mínima de uma tela e `scrollbar-gutter: stable` | CLS do detalhe desktop 0,225 → 0,006 (Performance 87 → 99) |
-| Imagens WebP 400/500 px com `srcset`, dimensões fixas, `fetchpriority` nos 3 primeiros cards; fonte auto-hospedada com `font-display: swap` | sem CLS de imagem/fonte |
+| Renderiza **só o layout do breakpoint atual** (antes: mobile e desktop montados e um escondido por CSS) | TBT mobile ≈ 390 → ≈ 150 ms; DOM e layout menores |
+| **Shell sem a camada de dados**: erros num módulo leve, constantes de domínio sem zod, validação de busca da URL sem zod, loaders e serviço de auth importados sob demanda, schema do checkout fora da definição da rota | axios/zod/sonner fora do caminho da primeira pintura do shell |
+| Header (desktop), drawer de filtros, filtros com slider, contador do carrinho, Toaster e conexão Socket.IO **sob demanda** | chunk da rota Início: 6 KB gzip |
+| Ordenação com `<select>` nativo; sidebar e destaque só a partir de `lg` | Radix Select/Slider/floating-ui fora da primeira tela no mobile |
+| Chunks consolidados (`react`, `tanstack`, `data`, `constants`) + `modulepreload` da camada de dados e dos mocks | sem cascata de descoberta de módulos |
+| Toasts, socket e painel de mocks **depois do `load`** (idle) | não disputam a thread com a pintura do LCP |
+| Shim de `tldts` (lista de sufixos públicos do cookie store do MSW) | mocks 366 KB → 103 KB |
+| CSS embutido no HTML; `content-visibility` abaixo da dobra; `<main>` com altura mínima; espaço reservado no hero; `scrollbar-gutter` | CLS 0,000 no mobile; sem requisição bloqueante de CSS |
+| Imagens WebP 400/500 px com `srcset`, `fetchpriority` nos primeiros cards e baixa prioridade abaixo da dobra | LCP sem competição de banda |
 
-### Por que o mobile fica abaixo de 90
-- **Causa principal — a API roda no navegador.** Antes de qualquer dado existir, o dispositivo precisa baixar e executar o runtime do MSW, registrar o Service Worker e só então responder ao catálogo; a imagem do primeiro card (elemento de LCP) só é pedida depois disso. Com um backend real, esse código não existiria no cliente e o LCP passaria a depender só da latência da API.
-- **Custo de JavaScript sob CPU 4×.** A thread principal soma ~2,5 s (≈1,3 s de avaliação de script) para React, Router, Query, zod (validação de contratos) e a camada de mocks. Isso explica o FCP de ~3,4 s e o TBT de 260–370 ms. No desktop (CPU 1×) as mesmas páginas ficam em 99.
-- **Caminhos avaliados e não adotados:** SSR/pré-renderização (fora do escopo de uma SPA com dados simulados no navegador) e um *app shell* estático no `index.html` (risco de CLS ao trocar pelo React e de divergência visual). Remover os mocks ou trocar os dados por conteúdo estático na auditoria foi descartado por ser uma simplificação exclusiva para a pontuação.
-- Accessibility, Best Practices e SEO atingem as metas em todas as páginas e perfis.
+Evolução no mobile (produção): Início 71 → **89**, Detalhe 79 → **87–90**; desktop 98–100.
+
+### O que ainda separa o mobile de ≥ 90 de forma consistente
+- **A API roda no navegador.** O elemento de LCP (primeiro card) depende da resposta do catálogo, que só existe depois de o runtime do MSW baixar, executar e registrar o Service Worker, mais a latência simulada do cenário padrão (150–450 ms). Com um backend real, esse código não iria para o cliente.
+- **SPA sem pré-renderização.** A primeira pintura depende de React + Router + App (~130 KB gzip) sob CPU 4×. SSR/pré-renderização resolveriam, mas fogem do escopo de uma SPA com dados simulados no navegador; um *app shell* estático no HTML foi descartado por risco de divergência visual/CLS. Remover os mocks ou servir conteúdo estático na auditoria foi descartado por ser uma simplificação exclusiva para a pontuação.

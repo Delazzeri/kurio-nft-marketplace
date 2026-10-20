@@ -5,7 +5,7 @@ Implementação do desafio frontend da Jungle Gaming: um marketplace de NFTs em 
 - **Aplicação publicada:** https://kurio-nft-marketplace-five.vercel.app
 - **Repositório:** https://github.com/Delazzeri/kurio-nft-marketplace
 - **Arquitetura, contratos e decisões:** [ARCHITECTURE.md](./ARCHITECTURE.md)
-- **Auditoria Lighthouse:** [lighthouse/reports/summary.md](./lighthouse/reports/summary.md)
+- **Auditoria Lighthouse:** [produção (Vercel)](./lighthouse/reports/producao/summary.md) · [local](./lighthouse/reports/local/summary.md)
 
 ## Stack
 
@@ -46,7 +46,8 @@ pnpm dev            # http://localhost:5173 — com mocks (MSW) ativos
 | `pnpm test:e2e:update` | Regenera as baselines de regressão visual |
 | `E2E_BASE_URL=https://kurio-nft-marketplace-five.vercel.app pnpm test:e2e` | Roda a suíte contra o deploy publicado (sem servidor local) |
 | `pnpm test:report` | Abre o relatório HTML do Playwright (traces das falhas inclusos) |
-| `pnpm lighthouse` | Build + auditoria Lighthouse (3 execuções por página/perfil) |
+| `pnpm lighthouse` | Build + auditoria Lighthouse local (3 execuções por página/perfil) |
+| `pnpm lighthouse:prod` | Auditoria Lighthouse do deploy publicado na Vercel |
 
 > Na primeira execução dos testes: `pnpm exec playwright install chromium`.
 
@@ -166,6 +167,6 @@ src/
   routes/       rotas TanStack Router (arquivo = rota)
 mocks/          banco simulado, seed, cenários, handlers REST, servidor Socket.IO, painel
 e2e/            testes Playwright + baselines visuais
-lighthouse/     configuração, script e relatórios da auditoria
+lighthouse/     configuração, script e relatórios (local/ e producao/)
 docs/figma/     frames exportados do Figma (referência visual)
 ```

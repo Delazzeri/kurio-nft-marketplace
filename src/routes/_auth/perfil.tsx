@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet, useNavigate } from '@tanstack/react-rout
 import { AlertTriangle, Download, Heart, LineChart, LogOut, MapPin, ShoppingCart, User } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { authService } from '@/auth/auth-service'
+import { MobileTopBar } from '@/components/layout/MobileNav'
 import { cn } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/perfil')({
@@ -26,9 +27,11 @@ function Disabled({ icon: Icon, label }: { icon: ComponentType<{ className?: str
 function ProfileLayout() {
   const navigate = useNavigate()
   return (
-    <div className="container-page grid gap-7 pt-8 md:grid-cols-[310px_1fr]">
-      <nav aria-labelledby="perfil-menu" className="h-fit bg-card pt-6">
-        <h2 id="perfil-menu" className="px-3 pb-2 text-lg font-bold">
+    <>
+    <MobileTopBar title="Meu perfil" />
+    <div className="container-page grid gap-7 md:grid-cols-[310px_1fr] md:pt-8">
+      <nav aria-labelledby="perfil-menu" className="h-fit min-w-0 bg-card max-md:rounded-xl md:pt-6">
+        <h2 id="perfil-menu" className="px-3 pb-2 text-lg font-bold max-md:sr-only">
           Meu perfil
         </h2>
         <ul className="flex overflow-x-auto md:flex-col">
@@ -69,5 +72,6 @@ function ProfileLayout() {
         <Outlet />
       </div>
     </div>
+    </>
   )
 }

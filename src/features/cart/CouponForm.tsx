@@ -39,7 +39,7 @@ export function CouponForm({ cart }: { cart: Cart }) {
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-2">
-      <label htmlFor={id} className="text-sm font-bold">
+      <label htmlFor={id} className="text-sm font-bold max-md:sr-only">
         Código promocional
       </label>
       <div className="flex">
@@ -50,9 +50,9 @@ export function CouponForm({ cart }: { cart: Cart }) {
           placeholder="Digite o código promocional..."
           aria-invalid={!!error}
           aria-describedby={error ? `${id}-erro` : `${id}-dica`}
-          className="h-10 min-w-0 flex-1 rounded-l-sm border border-primary bg-background px-3 text-sm aria-[invalid=true]:border-destructive"
+          className="h-10 min-w-0 flex-1 rounded-l-sm border border-primary bg-background px-3 text-sm aria-[invalid=true]:border-destructive max-md:h-12 max-md:rounded-l-full max-md:border-border max-md:px-5"
         />
-        <Button type="submit" className="h-10 rounded-l-none px-5 text-base" disabled={apply.isPending}>
+        <Button type="submit" className="h-10 rounded-l-none px-5 text-base max-md:h-12 max-md:rounded-r-full max-md:bg-gradient-to-r max-md:from-price max-md:to-primary" disabled={apply.isPending}>
           {apply.isPending ? 'Aplicando…' : 'Aplicar'}
         </Button>
       </div>

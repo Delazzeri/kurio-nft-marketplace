@@ -22,6 +22,7 @@ import {
   type RegisterInput,
   type WalletInput,
   type WalletSlot,
+  type WalletType,
 } from './contracts'
 
 type Opts = { signal?: AbortSignal }
@@ -94,8 +95,8 @@ export const api = {
   },
 
   walletSessions: {
-    connect: (walletId: string, network: NetworkId) =>
-      request(walletSessionSchema, { method: 'POST', url: '/wallet-sessions', data: { walletId, network } }),
+    connect: (walletId: string, network: NetworkId, provider: WalletType) =>
+      request(walletSessionSchema, { method: 'POST', url: '/wallet-sessions', data: { walletId, network, provider } }),
     disconnect: (id: string) => request(z.unknown(), { method: 'DELETE', url: `/wallet-sessions/${id}` }),
   },
 

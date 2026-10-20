@@ -338,6 +338,8 @@ export const walletSessionSchema = z.object({
   id: z.string(),
   walletId: z.string(),
   network: z.enum(networkIds),
+  /** Provedor usado na conexão simulada (WalletConnect, MetaMask, Coinbase) */
+  provider: z.enum(walletTypeIds),
   address: z.string(),
   status: z.literal('connected'),
   connectedAt: z.string(),

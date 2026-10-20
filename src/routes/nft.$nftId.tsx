@@ -27,6 +27,7 @@ export const Route = createFileRoute('/nft/$nftId')({
     void context.queryClient.prefetchQuery(nftDetailQuery(params.nftId))
     void context.queryClient.prefetchQuery(relatedQuery(params.nftId))
   },
+  staticData: { hideMobileTabs: true },
   component: NftDetailPage,
 })
 
@@ -350,12 +351,13 @@ function DetailBody({ nft }: { nft: NftDetail }) {
 
       <div className="container-page mt-10 md:mt-20">
         <Tabs defaultValue="detalhes">
-          <TabsList className="h-auto w-full justify-start gap-8 rounded-none border-b border-border bg-transparent p-0">
+          <TabsList className="h-auto w-full justify-start gap-6 overflow-x-auto rounded-none border-b border-border bg-transparent p-0 md:gap-8">
             <TabsTrigger value="detalhes" className="flex-none rounded-none border-0 border-b-2 border-transparent px-0 pb-2 text-base data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-bold data-[state=active]:text-primary">
               Detalhes do NFT
             </TabsTrigger>
             <TabsTrigger value="avaliacoes" className="flex-none rounded-none border-0 border-b-2 border-transparent px-0 pb-2 text-base data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:font-bold data-[state=active]:text-primary">
-              Avaliações de colecionadores ({nft.reviewsCount})
+              <span className="md:hidden">Avaliações ({nft.reviewsCount})</span>
+              <span className="max-md:hidden">Avaliações de colecionadores ({nft.reviewsCount})</span>
             </TabsTrigger>
           </TabsList>
           <TabsContent value="detalhes" className="flex flex-col gap-4 pt-4 text-sm leading-relaxed">

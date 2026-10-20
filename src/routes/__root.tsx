@@ -4,6 +4,7 @@ import { lazy, Suspense, useEffect, useRef } from 'react'
 import { SessionWatcher } from '@/auth/SessionWatcher'
 import { Footer } from '@/components/layout/Footer'
 import { Header } from '@/components/layout/Header'
+import { MobileTabBar } from '@/components/layout/MobileNav'
 import { LiveRegion, NotFound } from '@/components/states'
 import { Toaster } from '@/components/ui/sonner'
 
@@ -37,13 +38,15 @@ function RootLayout() {
   const mainRef = useFocusOnNavigate()
   // telas de autenticação no mobile são tela cheia (frames mobile de Login/Cadastro)
   const authScreen = useRouterState({ select: (s) => s.matches.some((m) => m.staticData?.authScreen) })
+  const showTabs = useRouterState({ select: (s) => !s.matches.some((m) => m.staticData?.authScreen || m.staticData?.hideMobileTabs) })
   return (
     <>
       <HeadContent />
       <a href="#conteudo" className="sr-only z-50 rounded-sm bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2">
         Pular para o conteúdo
       </a>
-      <div className={authScreen ? 'max-md:hidden' : undefined}>
+      {/* no mobile cada tela tem seu topo (frames mobile); header completo a partir de md */}
+      <div className="max-md:hidden">
         <Header />
       </div>
       <main id="conteudo" ref={mainRef} tabIndex={-1} className="outline-none">
@@ -52,6 +55,12 @@ function RootLayout() {
       <div className={authScreen ? 'max-md:hidden' : undefined}>
         <Footer />
       </div>
+      {showTabs && (
+        <>
+          <div aria-hidden className="h-28 md:hidden" />
+          <MobileTabBar />
+        </>
+      )}
       <Toaster />
       <LiveRegion />
       <SessionWatcher />

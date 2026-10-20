@@ -12,10 +12,13 @@ import { useAcknowledgePrice, useCart, useQuote, useRemoveCartItem, useUpdateCar
 import { useNftList } from '@/features/catalog/queries'
 import { RelatedCarousel } from '@/features/catalog/RelatedCarousel'
 import { formatEth } from '@/lib/eth'
+import { thumbnail } from '@/lib/images'
 import { cn } from '@/lib/utils'
+import { MobileTopBar } from '@/components/layout/MobileNav'
 
 export const Route = createFileRoute('/carrinho')({
   head: () => ({ meta: [{ title: 'Carrinho — Kurio' }] }),
+  staticData: { hideMobileTabs: true },
   component: CartPage,
 })
 
@@ -56,11 +59,50 @@ function CartRow({ item }: { item: CartItem }) {
   const update = useUpdateCartItem()
   const remove = useRemoveCartItem()
   const max = Math.max(item.quantity, Math.min(item.available, MAX_PER_ITEM))
+  const stepper = (
+    <QuantityStepper
+      size="sm"
+      value={item.quantity}
+      max={max}
+      disabled={update.isPending || item.issues.includes('SOLD_OUT')}
+      onChange={(quantity) => update.mutate({ itemId: item.id, quantity })}
+      label={`Quantidade de ${item.name}`}
+    />
+  )
+  const trash = (
+    <Button
+      size="icon-sm"
+      variant="ghost"
+      aria-label={`Remover ${item.name} do carrinho`}
+      disabled={remove.isPending}
+      onClick={() => remove.mutate({ itemId: item.id, name: item.name })}
+    >
+      <Trash2 />
+    </Button>
+  )
   return (
-    <li className={cn('bg-card', item.issues.length > 0 && 'ring-1 ring-price/50')} data-testid={`cart-item-${item.nftId}`}>
-      <div className="grid grid-cols-[70px_1fr_auto] items-center gap-x-4 gap-y-3 md:grid-cols-[minmax(0,2.4fr)_1fr_1fr_1fr_48px] md:gap-4">
-        <div className="col-span-2 flex items-center gap-4 md:col-span-1">
-          <img src={item.image} alt={item.imageAlt} width={70} height={70} loading="lazy" className="size-[70px] object-cover" />
+    <li className={cn('overflow-hidden bg-card max-md:rounded-2xl', item.issues.length > 0 && 'ring-1 ring-price/50')} data-testid={`cart-item-${item.nftId}`}>
+      {/* mobile (frame Mobile / Carrinho) */}
+      <div className="grid grid-cols-[100px_1fr] md:hidden">
+        <img src={thumbnail(item.image)} alt={item.imageAlt} width={100} height={100} loading="lazy" className="size-full min-h-[100px] object-cover" />
+        <div className="flex flex-col gap-1 p-3">
+          <div className="flex items-start justify-between gap-2">
+            <Link to="/nft/$nftId" params={{ nftId: item.nftId }} className="font-bold hover:text-primary">
+              {item.name}
+            </Link>
+            {trash}
+          </div>
+          <p className="text-sm text-muted-foreground">Edição: {item.editionLabel}</p>
+          <div className={cn('flex items-center justify-between gap-2', update.isPending && 'opacity-60')}>
+            <Price value={item.lineTotal} className="text-lg" />
+            {stepper}
+          </div>
+        </div>
+      </div>
+      {/* desktop */}
+      <div className="hidden items-center gap-4 md:grid md:grid-cols-[minmax(0,2.4fr)_1fr_1fr_1fr_48px]">
+        <div className="flex items-center gap-4">
+          <img src={thumbnail(item.image)} alt={item.imageAlt} width={70} height={70} loading="lazy" className="size-[70px] object-cover" />
           <div className="min-w-0">
             <Link to="/nft/$nftId" params={{ nftId: item.nftId }} className="block truncate font-bold hover:text-primary">
               {item.name}
@@ -69,34 +111,10 @@ function CartRow({ item }: { item: CartItem }) {
             <p className="text-xs text-muted-foreground">Edição {item.editionLabel}</p>
           </div>
         </div>
-        <div className="row-start-1 justify-self-end pr-2 md:hidden">
-          <Button size="icon-sm" variant="ghost" aria-label={`Remover ${item.name} do carrinho`} disabled={remove.isPending} onClick={() => remove.mutate({ itemId: item.id, name: item.name })}>
-            <Trash2 />
-          </Button>
-        </div>
-        <div className="pl-4 md:pl-0">
-          <span className="sr-only md:hidden">Preço unitário: </span>
-          <span className="font-semibold text-muted-foreground">{formatEth(item.unitPrice)}</span>
-        </div>
-        <div className={cn(update.isPending && 'opacity-60')}>
-          <QuantityStepper
-            size="sm"
-            value={item.quantity}
-            max={max}
-            disabled={update.isPending || item.issues.includes('SOLD_OUT')}
-            onChange={(quantity) => update.mutate({ itemId: item.id, quantity })}
-            label={`Quantidade de ${item.name}`}
-          />
-        </div>
-        <div className="col-span-3 pb-3 pl-4 md:col-span-1 md:pb-0 md:pl-0">
-          <span className="sr-only">Total do item: </span>
-          <Price value={item.lineTotal} />
-        </div>
-        <div className="hidden md:block">
-          <Button size="icon-sm" variant="ghost" aria-label={`Remover ${item.name} do carrinho`} disabled={remove.isPending} onClick={() => remove.mutate({ itemId: item.id, name: item.name })}>
-            <Trash2 />
-          </Button>
-        </div>
+        <span className="font-semibold text-muted-foreground">{formatEth(item.unitPrice)}</span>
+        <div className={cn(update.isPending && 'opacity-60')}>{stepper}</div>
+        <Price value={item.lineTotal} />
+        <div>{trash}</div>
       </div>
       <ItemIssues item={item} />
     </li>
@@ -113,8 +131,9 @@ function CartPage() {
 
   return (
     <>
-      <div className="container-page pt-6">
-        <Breadcrumb>
+      <MobileTopBar title="Carrinho de NFTs" />
+      <div className="container-page md:pt-6">
+        <Breadcrumb className="max-md:hidden">
           <BreadcrumbList className="text-sm font-semibold text-foreground">
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
@@ -166,15 +185,15 @@ function CartPage() {
                 <span>Total</span>
                 <span />
               </div>
-              <ul className="mt-3 flex flex-col gap-3" aria-busy={isFetching}>
+              <ul className="mt-3 flex flex-col gap-3 max-md:gap-5" aria-busy={isFetching}>
                 {cart.items.map((item) => (
                   <CartRow key={item.id} item={item} />
                 ))}
               </ul>
             </section>
 
-            <aside aria-labelledby="resumo-titulo" className="flex flex-col gap-6">
-              <h2 id="resumo-titulo" className="border-b border-border pb-3 text-lg font-bold">
+            <aside aria-labelledby="resumo-titulo" className="flex flex-col gap-6 max-md:-mx-4 max-md:rounded-t-[28px] max-md:bg-card max-md:px-6 max-md:pt-6 max-md:pb-8">
+              <h2 id="resumo-titulo" className="border-b border-border pb-3 text-lg font-bold max-md:sr-only">
                 Resumo da carteira
               </h2>
               <CouponForm cart={cart} />
@@ -190,7 +209,7 @@ function CartPage() {
                   ))}
                 </ul>
               )}
-              <Button size="lg" className="w-full" disabled={blocked} onClick={() => void navigate({ to: '/pagamento' })}>
+              <Button size="lg" className="w-full max-md:h-14 max-md:rounded-full max-md:bg-gradient-to-r max-md:from-price max-md:to-primary" disabled={blocked} onClick={() => void navigate({ to: '/pagamento' })}>
                 Conectar e finalizar
               </Button>
               {hasIssues && <p className="-mt-3 text-center text-xs text-price">Revise os avisos dos itens para continuar.</p>}

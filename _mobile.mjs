@@ -1,0 +1,20 @@
+import { chromium } from '@playwright/test';
+const SP = process.argv[2]; const W = +(process.argv[3] ?? 390);
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: W, height: 844 }, hasTouch: true, isMobile: true });
+p.on('pageerror', (e) => console.log('[pageerror]', e.message));
+p.on('console', (m) => m.type() === 'error' && console.log('[console]', m.text().slice(0, 200)));
+const shot = (n) => p.screenshot({ path: `${SP}/m${W}-${n}.png`, fullPage: false });
+await p.goto('http://localhost:5173/?cenario=instantaneo'); await p.getByRole('link', { name: 'Emerald Ape #042' }).first().waitFor(); await p.waitForTimeout(500); await shot('home');
+const overflow = await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+console.log('home overflow-x:', overflow);
+await p.goto('http://localhost:5173/nft/emerald-ape-042'); await p.getByRole('button', { name: 'Comprar NFT', exact: true }).waitFor(); await shot('detail');
+await p.getByRole('button', { name: 'Adicionar ao carrinho' }).click(); await p.waitForTimeout(400);
+await p.goto('http://localhost:5173/nft/ivory-baron-088'); await p.getByRole('button', { name: 'Comprar NFT', exact: true }).click(); await p.waitForURL('**/carrinho'); await p.getByTestId('total').waitFor(); await p.waitForTimeout(400); await shot('cart');
+await p.screenshot({ path: `${SP}/m${W}-cart-full.png`, fullPage: true });
+await p.goto('http://localhost:5173/entrar?redirect=%2Fpagamento'); await p.getByLabel('E-mail', { exact: true }).fill('ana@kurio.dev'); await p.getByLabel('Senha', { exact: true }).fill('Kurio@2026'); await p.getByRole('button', { name: 'Entrar', exact: true }).click(); await p.waitForURL('**/pagamento');
+await p.getByText('Carteira e rede').waitFor(); await p.waitForTimeout(500); await shot('checkout');
+await p.screenshot({ path: `${SP}/m${W}-checkout-full.png`, fullPage: true });
+for (const path of ['/pagamento', '/carrinho', '/perfil', '/perfil/carteiras']) { await p.goto('http://localhost:5173' + path); await p.waitForTimeout(800); console.log(path, 'overflow-x:', await p.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)); }
+await shot('perfil-carteiras');
+await b.close();

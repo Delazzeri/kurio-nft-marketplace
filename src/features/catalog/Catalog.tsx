@@ -14,7 +14,15 @@ import { useNftList } from './queries'
 import { PAGE_SIZE, toApiQuery, type CatalogSearch } from './search'
 import { Spotlight } from './Spotlight'
 
-export function Catalog({ search }: { search: CatalogSearch }) {
+export function Catalog({
+  search,
+  filtersOpen,
+  onFiltersOpenChange,
+}: {
+  search: CatalogSearch
+  filtersOpen: boolean
+  onFiltersOpenChange: (open: boolean) => void
+}) {
   const navigate = useNavigate({ from: '/' })
   const query = useNftList(toApiQuery(search))
   const { data, isPending, isError, error, refetch, isFetching, isPlaceholderData } = query
@@ -51,8 +59,28 @@ export function Catalog({ search }: { search: CatalogSearch }) {
 
   const filters = <Filters facets={data?.facets} search={search} onChange={update} />
 
+  const sortControl = (id: string) => (
+    <>
+      <label htmlFor={id} className="text-sm whitespace-nowrap">
+        Ordenar por:
+      </label>
+      <Select value={search.sort ?? 'recent'} onValueChange={(v) => update({ sort: v === 'recent' ? undefined : (v as CatalogSearch['sort']) })}>
+        <SelectTrigger id={id} className="h-8 border-0 px-1 text-sm max-md:border max-md:px-3">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {sortOptions.map((o) => (
+            <SelectItem key={o.id} value={o.id}>
+              {o.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </>
+  )
+
   return (
-    <section id="catalogo" aria-labelledby="catalogo-titulo" className="container-page scroll-mt-4 pt-14">
+    <section id="catalogo" aria-labelledby="catalogo-titulo" className="container-page scroll-mt-4 pt-6 md:pt-14">
       <h2 id="catalogo-titulo" className="sr-only">
         Catálogo de NFTs
       </h2>
@@ -63,8 +91,8 @@ export function Catalog({ search }: { search: CatalogSearch }) {
         </aside>
 
         <div className="flex min-w-0 flex-col gap-6">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border">
-            <div role="group" aria-label="Lançamentos" className="-mb-px flex gap-5 overflow-x-auto">
+          <div className="flex flex-wrap items-center justify-between gap-3 md:border-b md:border-border">
+            <div role="group" aria-label="Lançamentos" className="-mb-px flex gap-4 overflow-x-auto max-md:w-full max-md:justify-between md:gap-5">
               {catalogTabs.map((t) => {
                 const active = (search.tab ?? 'all') === t.id
                 return (
@@ -74,7 +102,7 @@ export function Catalog({ search }: { search: CatalogSearch }) {
                     aria-pressed={active}
                     onClick={() => update({ tab: t.id === 'all' ? undefined : t.id })}
                     className={cn(
-                      'shrink-0 border-b-2 py-2 text-sm whitespace-nowrap transition-colors',
+                      'shrink-0 border-b-2 py-2 text-sm whitespace-nowrap transition-colors max-md:text-[13px]',
                       active ? 'border-primary font-semibold text-primary' : 'border-transparent hover:text-primary',
                     )}
                   >
@@ -84,9 +112,9 @@ export function Catalog({ search }: { search: CatalogSearch }) {
               })}
             </div>
             <div className="flex items-center gap-2 pb-2">
-              <Sheet>
+              <Sheet open={filtersOpen} onOpenChange={onFiltersOpenChange}>
                 <SheetTrigger asChild>
-                  <Button variant="outline" size="sm" className="lg:hidden">
+                  <Button variant="outline" size="sm" className="hidden md:inline-flex lg:hidden">
                     <SlidersHorizontal aria-hidden /> Filtros{activeChips.length ? ` (${activeChips.length})` : ''}
                   </Button>
                 </SheetTrigger>
@@ -95,24 +123,13 @@ export function Catalog({ search }: { search: CatalogSearch }) {
                     <SheetTitle>Filtros</SheetTitle>
                     <SheetDescription>Os resultados são atualizados a cada seleção.</SheetDescription>
                   </SheetHeader>
-                  <div className="px-4 pb-8">{filters}</div>
+                  <div className="flex flex-col gap-8 px-4 pb-8">
+                    <div className="flex flex-col gap-2 md:hidden">{sortControl('ordenacao-mobile')}</div>
+                    {filters}
+                  </div>
                 </SheetContent>
               </Sheet>
-              <label htmlFor="ordenacao" className="text-sm whitespace-nowrap">
-                Ordenar por:
-              </label>
-              <Select value={search.sort ?? 'recent'} onValueChange={(v) => update({ sort: v === 'recent' ? undefined : (v as CatalogSearch['sort']) })}>
-                <SelectTrigger id="ordenacao" className="h-8 border-0 px-1 text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {sortOptions.map((o) => (
-                    <SelectItem key={o.id} value={o.id}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="hidden items-center gap-2 md:flex">{sortControl('ordenacao')}</div>
             </div>
           </div>
 
@@ -169,7 +186,12 @@ export function Catalog({ search }: { search: CatalogSearch }) {
                   Página {data.page} de {data.totalPages}, {data.total} resultados.
                 </p>
                 <ul
-                  className={cn('grid grid-cols-2 gap-x-4 gap-y-8 transition-opacity sm:gap-x-6 md:grid-cols-3', isPlaceholderData && 'opacity-60')}
+                  className={cn(
+                    'grid grid-cols-2 gap-x-4 gap-y-8 transition-opacity sm:gap-x-6 md:grid-cols-3',
+                    // grid escalonado do frame mobile
+                    'max-md:[&>li:nth-child(even)]:mt-8',
+                    isPlaceholderData && 'opacity-60',
+                  )}
                   data-testid="catalog-grid"
                 >
                   {data.items.map((nft, i) => (

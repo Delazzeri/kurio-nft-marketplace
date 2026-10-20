@@ -1,4 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useState } from 'react'
+import { MobileSearchBar } from '@/features/catalog/MobileSearchBar'
 import { Catalog } from '@/features/catalog/Catalog'
 import { Hero } from '@/features/catalog/Hero'
 import { Journal, PromoBanners } from '@/features/catalog/HomeExtras'
@@ -19,10 +21,13 @@ export const Route = createFileRoute('/')({
 
 function HomePage() {
   const search = Route.useSearch()
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const activeFilters = (search.cat?.length ?? 0) + (search.net?.length ?? 0) + (search.min || search.max ? 1 : 0)
   return (
     <>
+      <MobileSearchBar search={search} onOpenFilters={() => setFiltersOpen(true)} activeFilters={activeFilters} />
       <Hero />
-      <Catalog search={search} />
+      <Catalog search={search} filtersOpen={filtersOpen} onFiltersOpenChange={setFiltersOpen} />
       <PromoBanners />
       <Journal />
     </>

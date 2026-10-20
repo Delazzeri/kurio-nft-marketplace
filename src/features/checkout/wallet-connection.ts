@@ -2,7 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { isApiError } from '@/api/client'
-import type { NetworkId, WalletSession } from '@/api/contracts'
+import type { NetworkId, WalletSession, WalletType } from '@/api/contracts'
 import { api } from '@/api/endpoints'
 import { qk } from '@/api/query-keys'
 import { useSession } from '@/auth/session-store'
@@ -46,10 +46,11 @@ export function useWalletConnection() {
   }
 
   const connect = useMutation({
-    mutationFn: ({ walletId, network }: { walletId: string; network: NetworkId }) => api.walletSessions.connect(walletId, network),
+    mutationFn: ({ walletId, network, provider }: { walletId: string; network: NetworkId; provider: WalletType }) =>
+      api.walletSessions.connect(walletId, network, provider),
     onSuccess: (s) => {
       persist(s)
-      announce('Carteira conectada.')
+      announce(`Carteira conectada via ${s.provider}.`)
     },
     onError: (error) => {
       const message = isApiError(error) ? error.message : 'Não foi possível conectar a carteira.'

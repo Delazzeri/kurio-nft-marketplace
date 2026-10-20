@@ -23,6 +23,7 @@ import { useCart, useQuote } from '@/features/cart/queries'
 import { QuoteStaleError, usePendingOrder, useSubmitOrder } from '@/features/checkout/order-hooks'
 import { useWalletConnection, useWallets } from '@/features/checkout/wallet-connection'
 import { WalletsPill } from '@/components/layout/Footer'
+import { MobileTopBar } from '@/components/layout/MobileNav'
 import { announce } from '@/lib/announce'
 import { formatEth } from '@/lib/eth'
 import { storage } from '@/lib/storage'
@@ -30,6 +31,7 @@ import { cn } from '@/lib/utils'
 
 export const Route = createFileRoute('/_auth/pagamento')({
   head: () => ({ meta: [{ title: 'Pagamento — Kurio' }] }),
+  staticData: { hideMobileTabs: true },
   component: CheckoutPage,
 })
 
@@ -197,8 +199,10 @@ function CheckoutPage() {
   const errors = formState.errors
 
   return (
-    <div className="container-page pt-6">
-      <Breadcrumb>
+    <>
+    <MobileTopBar title="Pagamento com carteira" />
+    <div className="container-page lg:pt-6">
+      <Breadcrumb className="max-lg:hidden">
         <BreadcrumbList className="text-sm font-semibold text-foreground">
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
@@ -220,8 +224,9 @@ function CheckoutPage() {
       <h1 className="sr-only">Pagamento</h1>
       {pending.data && <PendingBanner orderId={pending.data.id} className="mt-4" />}
 
-      <form onSubmit={openReview} noValidate className="mt-6 grid gap-10 lg:grid-cols-[1fr_405px] lg:gap-8">
-        <section aria-labelledby="perfil-titulo" className="flex flex-col gap-5">
+      <div className="flex flex-col gap-10 lg:mt-6 lg:grid lg:grid-cols-[1fr_405px] lg:gap-8">
+        {/* o formulário do comprador é independente (o cupom tem seu próprio form, sem aninhamento) */}
+        <form id="checkout-form" onSubmit={openReview} noValidate aria-labelledby="perfil-titulo" className="flex flex-col gap-5">
           <h2 id="perfil-titulo" className="text-base font-bold">
             Perfil do colecionador
           </h2>
@@ -267,7 +272,7 @@ function CheckoutPage() {
               {...register('ensName')}
             />
           </div>
-          <label className="flex w-fit cursor-pointer items-center gap-2 text-sm">
+          <label className="flex w-fit cursor-pointer items-center gap-2 text-sm max-lg:hidden">
             <input type="checkbox" className="size-4 accent-[var(--primary)]" {...register('useSecondary')} disabled={!wallets.data?.secondary} />
             Usar outra carteira?
             {!wallets.data?.secondary && (
@@ -287,9 +292,9 @@ function CheckoutPage() {
               </p>
             )}
           </div>
-        </section>
+        </form>
 
-        <aside aria-labelledby="seus-nfts" className="flex flex-col gap-5">
+        <aside aria-labelledby="seus-nfts" className="flex flex-col gap-5 max-lg:contents">
           <h2 id="seus-nfts" className="text-base font-bold">
             Seus NFTs
           </h2>
@@ -331,11 +336,13 @@ function CheckoutPage() {
             </ul>
           )}
 
-          <fieldset className="flex flex-col gap-3">
-            <legend className="mb-3 text-center text-base font-bold">Carteira e rede</legend>
-            <div className="flex items-center gap-3 rounded-sm border border-border px-4 py-3">
-              <WalletsPill />
-              <span className="sr-only">Carteiras compatíveis</span>
+          {/* "Carteira conectada" (frame Mobile / Pagamento): escolha entre as carteiras cadastradas */}
+          <fieldset className="flex flex-col gap-3 max-lg:order-first">
+            <div className="flex items-center justify-between">
+              <legend className="text-base font-bold lg:sr-only">Carteira conectada</legend>
+              <Link to="/perfil/carteiras" className="text-sm font-semibold text-primary hover:underline lg:hidden">
+                Trocar carteira
+              </Link>
             </div>
             {!wallets.data?.primary ? (
               <p className="rounded-sm border border-price/60 p-3 text-sm">
@@ -345,61 +352,89 @@ function CheckoutPage() {
                 </Link>
               </p>
             ) : (
-              (['primary', 'secondary'] as const).map((slot) => {
-                const w = wallets.data?.[slot]
-                if (!w) return null
-                const selected = (slot === 'secondary') === useSecondary
-                return (
-                  <label
-                    key={slot}
-                    className={cn('flex cursor-pointer items-center gap-3 rounded-sm border px-4 py-3 text-sm', selected ? 'border-foreground' : 'border-border')}
-                  >
-                    <input
-                      type="radio"
-                      name="carteira"
-                      className="size-4 accent-[var(--primary)]"
-                      checked={selected}
-                      onChange={() => setValue('useSecondary', slot === 'secondary', { shouldDirty: true })}
-                    />
-                    <span className="flex flex-col">
-                      <span>{walletTypes.find((t) => t.id === w.walletType)?.label}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {slot === 'primary' ? 'Principal' : 'Secundária'} · {short(w.address)}
+              <div className="flex flex-col gap-3 lg:hidden">
+                {(['secondary', 'primary'] as const).map((slot) => {
+                  const w = wallets.data?.[slot]
+                  if (!w) return null
+                  const selected = (slot === 'secondary') === useSecondary
+                  return (
+                    <label key={slot} className={cn('flex cursor-pointer items-start gap-4 rounded-2xl bg-card px-5 py-4', selected && 'ring-1 ring-primary')}>
+                      <input
+                        type="radio"
+                        name="carteira-cadastrada"
+                        className="mt-1 size-4 accent-[var(--primary)]"
+                        checked={selected}
+                        onChange={() => setValue('useSecondary', slot === 'secondary', { shouldDirty: true })}
+                      />
+                      <span className="flex flex-col gap-0.5 text-sm">
+                        <span className="text-base font-bold">{slot === 'primary' ? 'Principal' : 'Reserva'}</span>
+                        <span className="text-muted-foreground">{w.secondaryAddress && slot === 'secondary' ? w.secondaryAddress : short(w.address)}</span>
+                        <span className="text-muted-foreground">Rede {networks.find((n) => n.id === w.network)?.label}</span>
                       </span>
-                    </span>
-                  </label>
-                )
-              })
-            )}
-            {wallet && (
-              <div className="flex flex-wrap items-center justify-between gap-2 text-sm" aria-live="polite">
-                {connected ? (
-                  <>
-                    <span className="flex items-center gap-2 text-success">
-                      <span aria-hidden className="size-2 rounded-full bg-success" /> Conectada na {networks.find((n) => n.id === network)?.label}
-                    </span>
-                    <Button type="button" size="sm" variant="ghost" onClick={() => disconnect.mutate()} disabled={disconnect.isPending}>
-                      <Unplug aria-hidden /> Desconectar
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-muted-foreground">Carteira desconectada</span>
-                    <Button type="button" size="sm" variant="outline" disabled={connect.isPending} onClick={() => connect.mutate({ walletId: wallet.id, network })}>
-                      {connect.isPending ? <Loader2 aria-hidden className="animate-spin" /> : <PlugZap aria-hidden />}
-                      {connect.isPending ? 'Aguardando a carteira…' : 'Conectar carteira'}
-                    </Button>
-                  </>
-                )}
+                    </label>
+                  )
+                })}
               </div>
             )}
           </fieldset>
+
+          {/* "Carteira e rede": provedor usado na conexão simulada (conectar / recusar / desconectar) */}
+          <fieldset className="flex flex-col gap-3 max-lg:order-first" disabled={!wallet}>
+            <legend className="mb-3 text-base font-bold lg:w-full lg:text-center">Carteira e rede</legend>
+            <div className="hidden items-center gap-3 rounded-sm border border-border px-4 py-3 lg:flex">
+              <WalletsPill />
+              <span className="sr-only">Carteiras compatíveis</span>
+            </div>
+            {walletTypes.map((p) => {
+              const isConnected = connected && session?.provider === p.id
+              const connecting = connect.isPending && connect.variables?.provider === p.id
+              return (
+                <div
+                  key={p.id}
+                  className={cn(
+                    'flex items-center gap-4 rounded-sm border px-4 py-3 text-sm max-lg:rounded-2xl max-lg:border-0 max-lg:bg-card',
+                    isConnected ? 'border-foreground max-lg:ring-1 max-lg:ring-primary' : 'border-border',
+                  )}
+                >
+                  <span aria-hidden className="flex size-10 shrink-0 items-center justify-center rounded-full border border-[#4f3421] font-bold text-primary lg:hidden">
+                    {p.label[0]}
+                  </span>
+                  <label className="flex flex-1 cursor-pointer items-center gap-3">
+                    <input
+                      type="radio"
+                      name="provedor"
+                      className="size-4 accent-[var(--primary)] max-lg:order-last max-lg:ml-auto"
+                      checked={isConnected || connecting}
+                      onChange={() => wallet && connect.mutate({ walletId: wallet.id, network, provider: p.id })}
+                    />
+                    <span>{p.label}</span>
+                  </label>
+                  <span className="text-xs" aria-live="polite">
+                    {connecting ? (
+                      <span className="flex items-center gap-1 text-muted-foreground">
+                        <Loader2 aria-hidden className="size-3 animate-spin" /> Conectando…
+                      </span>
+                    ) : isConnected ? (
+                      <button type="button" onClick={() => disconnect.mutate()} className="flex items-center gap-1 text-success hover:underline">
+                        <Unplug aria-hidden className="size-3" /> Conectada · desconectar
+                      </button>
+                    ) : null}
+                  </span>
+                </div>
+              )
+            })}
+            {!connected && wallet && (
+              <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                <PlugZap aria-hidden className="size-4" /> Selecione um provedor para conectar a carteira {short(wallet.address)} na {networks.find((n) => n.id === network)?.label}.
+              </p>
+            )}
+          </fieldset>
           <FormAlert message={preflightError} />
-          <Button type="submit" size="lg" className="w-full" disabled={blocked || !current}>
+          <Button type="submit" form="checkout-form" size="lg" className="w-full max-lg:order-last max-lg:h-14 max-lg:rounded-full max-lg:bg-gradient-to-r max-lg:from-price max-lg:to-primary" disabled={blocked || !current}>
             Revisar e confirmar compra
           </Button>
         </aside>
-      </form>
+      </div>
 
       <Dialog open={reviewOpen} onOpenChange={(o) => !submit.isPending && setReviewOpen(o)}>
         <DialogContent className="max-h-[90dvh] overflow-y-auto border-border bg-card sm:max-w-lg">
@@ -458,6 +493,7 @@ function CheckoutPage() {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   )
 }
 

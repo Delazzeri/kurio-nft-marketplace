@@ -24,6 +24,8 @@ declare module '@tanstack/react-router' {
   interface StaticDataRouteOption {
     /** Tela de login/cadastro: sem header/footer no mobile */
     authScreen?: boolean
+    /** Página com barra inferior própria (detalhe, carrinho, pagamento): sem tab bar no mobile */
+    hideMobileTabs?: boolean
   }
 }
 

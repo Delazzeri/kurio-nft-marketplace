@@ -54,6 +54,7 @@ export interface WalletSessionRecord {
   userId: string
   walletId: string
   network: NetworkId
+  provider: string
   address: string
   connectedAt: string
 }

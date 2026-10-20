@@ -19,7 +19,7 @@ export default function MockPanel() {
   }
 
   return (
-    <div className="fixed right-3 bottom-3 z-40 font-sans text-xs">
+    <div className="fixed right-3 bottom-[45%] z-40 font-sans text-xs md:bottom-3">
       {open ? (
         <section
           aria-label="Painel de cenários de mock"
@@ -89,7 +89,7 @@ export default function MockPanel() {
           aria-label={`Abrir painel de cenários (atual: ${scenario})`}
         >
           <FlaskConical className="size-4 text-primary" aria-hidden />
-          Mock: {scenario}
+          <span className="max-md:sr-only">Mock: {scenario}</span>
         </button>
       )}
     </div>

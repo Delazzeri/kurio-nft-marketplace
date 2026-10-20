@@ -1,7 +1,7 @@
 import Big from 'big.js'
 import { HttpResponse, delay, http } from 'msw'
 import { z } from 'zod'
-import { createOrderInputSchema, networkIds, walletTypes, type OrderUpdatedEvent } from '@/api/contracts'
+import { createOrderInputSchema, networkIds, walletTypeIds, walletTypes, type OrderUpdatedEvent } from '@/api/contracts'
 import {
   buildQuote,
   bus,
@@ -41,7 +41,7 @@ export const checkoutHandlers = [
     withNetwork(async ({ request }) => {
       const auth = authenticate(request)
       if (!auth.ok) return auth.response
-      const body = await parseBody(request, z.object({ walletId: z.string(), network: z.enum(networkIds) }))
+      const body = await parseBody(request, z.object({ walletId: z.string(), network: z.enum(networkIds), provider: z.enum(walletTypeIds) }))
       if (!body.ok) return body.response
       const wallet = userWallets(auth.user.id).find((w) => w.id === body.data.walletId)
       if (!wallet) return apiError(404, 'NOT_FOUND', 'Carteira não encontrada.')
@@ -53,6 +53,7 @@ export const checkoutHandlers = [
         userId: auth.user.id,
         walletId: wallet.id,
         network: body.data.network,
+        provider: body.data.provider,
         address: wallet.address,
         connectedAt: new Date().toISOString(),
       }

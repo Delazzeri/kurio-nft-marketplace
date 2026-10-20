@@ -81,6 +81,8 @@
   }
   html {
     color-scheme: dark;
+    /* reserva o espaço da barra de rolagem: conteúdo que cresce não desloca o layout (CLS) */
+    scrollbar-gutter: stable;
     -webkit-text-size-adjust: 100%;
   }
   body {

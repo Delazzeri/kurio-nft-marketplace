@@ -1,6 +1,7 @@
 import axios, { AxiosError, type AxiosRequestConfig } from 'axios'
 import type { ZodType } from 'zod'
 import { guestCart, sessionStore } from '@/auth/session-store'
+import { mocksReady } from '@/app/mocks-ready'
 import { apiErrorSchema, type ErrorCode } from './contracts'
 
 export const REQUEST_TIMEOUT_MS = 10_000
@@ -11,7 +12,9 @@ export const http = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
-http.interceptors.request.use((config) => {
+http.interceptors.request.use(async (config) => {
+  // nenhuma chamada sai antes da camada de rede (MSW) estar pronta
+  await mocksReady
   const { token } = sessionStore.get()
   if (token) config.headers.set('Authorization', `Bearer ${token}`)
   else config.headers.set('X-Cart-Id', guestCart.id())

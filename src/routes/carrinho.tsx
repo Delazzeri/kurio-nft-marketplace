@@ -13,6 +13,7 @@ import { useNftList } from '@/features/catalog/queries'
 import { RelatedCarousel } from '@/features/catalog/RelatedCarousel'
 import { formatEth } from '@/lib/eth'
 import { thumbnail } from '@/lib/images'
+import { useIsDesktop } from '@/lib/use-media'
 import { cn } from '@/lib/utils'
 import { MobileTopBar } from '@/components/layout/MobileNav'
 
@@ -59,6 +60,7 @@ function CartRow({ item }: { item: CartItem }) {
   const update = useUpdateCartItem()
   const remove = useRemoveCartItem()
   const max = Math.max(item.quantity, Math.min(item.available, MAX_PER_ITEM))
+  const isDesktop = useIsDesktop()
   const stepper = (
     <QuantityStepper
       size="sm"
@@ -83,7 +85,8 @@ function CartRow({ item }: { item: CartItem }) {
   return (
     <li className={cn('overflow-hidden bg-card max-md:rounded-2xl', item.issues.length > 0 && 'ring-1 ring-price/50')} data-testid={`cart-item-${item.nftId}`}>
       {/* mobile (frame Mobile / Carrinho) */}
-      <div className="grid grid-cols-[100px_1fr] md:hidden">
+      {!isDesktop && (
+      <div className="grid grid-cols-[100px_1fr]">
         <img src={thumbnail(item.image)} alt={item.imageAlt} width={100} height={100} loading="lazy" className="size-full min-h-[100px] object-cover" />
         <div className="flex flex-col gap-1 p-3">
           <div className="flex items-start justify-between gap-2">
@@ -99,8 +102,10 @@ function CartRow({ item }: { item: CartItem }) {
           </div>
         </div>
       </div>
+      )}
       {/* desktop */}
-      <div className="hidden items-center gap-4 md:grid md:grid-cols-[minmax(0,2.4fr)_1fr_1fr_1fr_48px]">
+      {isDesktop && (
+      <div className="grid grid-cols-[minmax(0,2.4fr)_1fr_1fr_1fr_48px] items-center gap-4">
         <div className="flex items-center gap-4">
           <img src={thumbnail(item.image)} alt={item.imageAlt} width={70} height={70} loading="lazy" className="size-[70px] object-cover" />
           <div className="min-w-0">
@@ -116,6 +121,7 @@ function CartRow({ item }: { item: CartItem }) {
         <Price value={item.lineTotal} />
         <div>{trash}</div>
       </div>
+      )}
       <ItemIssues item={item} />
     </li>
   )

@@ -4,9 +4,10 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { AlertTriangle, Loader2, PlugZap, Unplug } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { z } from 'zod'
-import { isApiError } from '@/api/client'
-import { buyerSchema, networkIds, networks, walletTypes, type Quote, type Wallet, type WalletType } from '@/api/contracts'
+import { isApiError } from '@/api/errors'
+import { networks, walletTypes, type WalletType } from '@/api/constants'
+import type { Quote, Wallet } from '@/api/contracts'
+import { checkoutSchema, type CheckoutForm } from '@/features/checkout/schema'
 import { qk } from '@/api/query-keys'
 import { useSession } from '@/auth/session-store'
 import { FormAlert, TextField } from '@/components/form'
@@ -34,12 +35,6 @@ export const Route = createFileRoute('/_auth/pagamento')({
   staticData: { hideMobileTabs: true },
   component: CheckoutPage,
 })
-
-const checkoutSchema = buyerSchema.extend({
-  network: z.enum(networkIds, { message: 'Selecione uma rede' }),
-  useSecondary: z.boolean(),
-})
-type CheckoutForm = z.input<typeof checkoutSchema>
 
 const draftKey = (uid: string) => `kurio:checkout-draft:${uid}`
 const short = (a: string) => (a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a)

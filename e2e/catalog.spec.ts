@@ -1,4 +1,14 @@
+import type { Page } from '@playwright/test'
 import { expect, test } from './fixtures'
+
+/** Nomes que a API (MSW) retorna para uma consulta — referência para conferir a grade. */
+async function apiNames(page: Page, query: string) {
+  return page.evaluate(async (q) => {
+    const res = await fetch(`/api/nfts?${q}`)
+    const body = (await res.json()) as { items: { name: string }[] }
+    return body.items.map((i) => i.name)
+  }, query)
+}
 
 /** Cenário 1 — busca, filtros combinados, ordenação, paginação e restauração pelo histórico. */
 test.describe('Catálogo', () => {
@@ -8,9 +18,9 @@ test.describe('Catálogo', () => {
     await expect(grid.getByRole('article')).toHaveCount(9)
 
     // paginação
-    await page.getByRole('link', { name: 'Página 2' }).click()
+    await page.getByRole('link', { name: 'Página 2', exact: true }).click()
     await expect(page).toHaveURL(/page=2/)
-    await expect(page.getByRole('link', { name: 'Página 2' })).toHaveAttribute('aria-current', 'page')
+    await expect(page.getByRole('link', { name: 'Página 2', exact: true })).toHaveAttribute('aria-current', 'page')
 
     // filtro reinicia a paginação
     if (app.isMobile) await page.getByRole('button', { name: /Filtros e ordenação/ }).click()
@@ -30,13 +40,16 @@ test.describe('Catálogo', () => {
     await expect(page).toHaveURL(/sort=price-asc/)
     if (app.isMobile) await page.getByRole('dialog', { name: 'Filtros' }).getByRole('button', { name: 'Fechar' }).click()
 
-    // Golden Signal (0.39) é o mais barato de Música + Ethereum
-    await expect(grid.getByRole('heading', { level: 3 }).first()).toHaveText('Golden Signal #160')
+    // a grade mostra exatamente o que a API retorna para os mesmos parâmetros, em ordem crescente de preço
+    const expected = await apiNames(page, 'category=musica&network=ethereum&sort=price-asc&page=1&pageSize=9')
+    await expect(grid.getByRole('heading', { level: 3 })).toHaveText(expected)
+    const prices = (await grid.locator('article .text-price > span:first-child').allTextContents()).map((t) => parseFloat(t))
+    expect(prices).toEqual([...prices].sort((a, b) => a - b))
 
     // refresh preserva o estado
     await page.reload()
     await expect(page).toHaveURL(/cat=musica/)
-    await expect(grid.getByRole('heading', { level: 3 }).first()).toHaveText('Golden Signal #160')
+    await expect(grid.getByRole('heading', { level: 3 })).toHaveText(expected)
 
     // histórico: voltar desfaz a ordenação
     await page.goBack()
@@ -58,6 +71,21 @@ test.describe('Catálogo', () => {
     await expect(page.getByTestId('catalog-grid').getByRole('article')).toHaveCount(9)
   })
 
+  test('contagens por coleção e rede seguem o Figma (44 NFTs multichain)', async ({ app, page }) => {
+    await app.goto('/')
+    if (app.isMobile) await page.getByRole('button', { name: /Filtros e ordenação/ }).click()
+    const filters = app.isMobile ? page.getByRole('dialog', { name: 'Filtros' }) : page.getByRole('complementary', { name: 'Filtros' })
+    const expected: [string, number][] = [
+      ['Arte digital', 33], ['Fotografia', 12], ['Música', 65], ['Arte 3D', 39], ['Colecionáveis', 23],
+      ['Generativa', 17], ['Jogos', 19], ['Assinaturas', 13], ['Utilidade', 18],
+      ['Ethereum', 119], ['Polygon', 78], ['Solana', 86],
+    ]
+    for (const [label, count] of expected) {
+      await expect(filters.getByRole('button', { name: new RegExp(`^${label}`) })).toContainText(`(${count})`)
+    }
+    await expect(filters.getByText('Preço: 0,02 - 12,30 ETH')).toBeVisible()
+  })
+
   test('parâmetros inválidos na URL são descartados sem quebrar a página', async ({ app, page }) => {
     await app.goto('/?page=abc&sort=foo&cat=nada&min=-1')
     await expect(page.getByTestId('catalog-grid').getByRole('article')).toHaveCount(9)
@@ -76,8 +104,9 @@ test.describe('Catálogo', () => {
       await filters.getByRole('button', { name: /^Música/ }).click()
       await expect(page).toHaveURL(/cat=musica/)
       await expect(page.getByTestId('catalog-grid')).not.toHaveClass(/opacity-60/, { timeout: 15_000 })
-      const names = await page.getByTestId('catalog-grid').getByRole('heading', { level: 3 }).allTextContents()
-      expect(names.every((n) => /Golden|Citrus/.test(n))).toBe(true)
+      // o resultado final corresponde à última consulta (Música), não a uma resposta atrasada
+      const expected = await apiNames(page, 'category=musica&sort=recent&page=1&pageSize=9')
+      await expect(page.getByTestId('catalog-grid').getByRole('heading', { level: 3 })).toHaveText(expected)
     })
   })
 })

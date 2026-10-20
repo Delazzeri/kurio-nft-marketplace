@@ -2,14 +2,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
 import { loginInputSchema, type LoginInput } from '@/api/contracts'
 import { authService } from '@/auth/auth-service'
 import { sessionStore } from '@/auth/session-store'
 import { applyServerErrors, FormAlert, TextField } from '@/components/form'
 import { notAvailable } from '@/components/states'
 import { Button } from '@/components/ui/button'
-import { AuthShell, safeRedirect } from '@/features/auth/AuthShell'
+import { safeRedirect } from '@/auth/redirect'
+import { AuthShell } from '@/features/auth/AuthShell'
 import { announce } from '@/lib/announce'
 
 const reasons: Record<string, string> = {
@@ -18,9 +18,9 @@ const reasons: Record<string, string> = {
 }
 
 export const Route = createFileRoute('/entrar')({
-  validateSearch: z.object({
-    redirect: z.string().optional().catch(undefined),
-    motivo: z.string().optional().catch(undefined),
+  validateSearch: (raw: Record<string, unknown>): { redirect?: string; motivo?: string } => ({
+    redirect: typeof raw.redirect === 'string' ? raw.redirect : undefined,
+    motivo: typeof raw.motivo === 'string' ? raw.motivo : undefined,
   }),
   beforeLoad: ({ search }) => {
     if (sessionStore.get().status === 'authenticated') throw redirect({ to: safeRedirect(search.redirect) })

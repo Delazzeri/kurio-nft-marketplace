@@ -1,9 +1,6 @@
 import { useNavigate, useRouter } from '@tanstack/react-router'
 import { useEffect } from 'react'
-import { toast } from 'sonner'
-import { api } from '@/api/endpoints'
 import { announce } from '@/lib/announce'
-import { authService } from './auth-service'
 import { sessionStore, useSession } from './session-store'
 
 const PRIVATE_PREFIXES = ['/pagamento', '/perfil', '/pedidos']
@@ -19,7 +16,8 @@ export function SessionWatcher() {
 
   // confirma sessão persistida ao carregar
   useEffect(() => {
-    void authService.ensureSession()
+    // serviço de auth (e camada HTTP) carregado sob demanda — fora do bundle da primeira pintura
+    void import('./auth-service').then(({ authService }) => authService.ensureSession())
   }, [])
 
   useEffect(() => {
@@ -27,7 +25,7 @@ export function SessionWatcher() {
         const { pathname, href } = router.state.location
         if (reason !== 'expired') return
         const message = 'Sua sessão expirou. Entre novamente para continuar de onde parou.'
-        toast.warning(message, { id: 'session-expired' })
+        void import('sonner').then(({ toast }) => toast.warning(message, { id: 'session-expired' }))
         announce(message, 'assertive')
         if (PRIVATE_PREFIXES.some((p) => pathname.startsWith(p))) {
           void navigate({ to: '/entrar', search: { redirect: href, motivo: 'expirada' }, replace: true })
@@ -42,7 +40,7 @@ export function SessionWatcher() {
   useEffect(() => {
     if (status !== 'authenticated' || !expiresAt) return
     const ms = Date.parse(expiresAt) - Date.now()
-    const timer = window.setTimeout(() => void api.auth.session().catch(() => undefined), Math.max(0, ms) + 250)
+    const timer = window.setTimeout(() => void import('@/api/endpoints').then(({ api }) => api.auth.session().catch(() => undefined)), Math.max(0, ms) + 250)
     return () => window.clearTimeout(timer)
   }, [status, expiresAt])
 

@@ -5,9 +5,10 @@ import tailwindcss from '@tailwindcss/vite'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
 /**
- * Os chunks do App e da camada de mocks são importados dinamicamente no main.tsx; sem isso o
- * navegador só os descobre depois de executar o entry. Anunciá-los no HTML (modulepreload)
- * faz o download começar em paralelo com o entry.
+ * O App e a camada de dados (endpoints, contratos, queries do catálogo) são carregados sob demanda
+ * — fora do bundle de entrada — mas são necessários na primeira tela de Início e Detalhe.
+ * Anunciá-los no HTML (modulepreload) faz o download começar em paralelo com o entry,
+ * em vez de em cascata (App → rota → queries → endpoints → contratos).
  */
 function preloadDynamicEntries(entries: string[]): Plugin {
   return {
@@ -38,7 +39,7 @@ export default defineConfig({
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     react(),
     tailwindcss(),
-    preloadDynamicEntries(['src/app/App.tsx', 'mocks/browser.ts']),
+    preloadDynamicEntries(['src/app/App.tsx', 'src/api/endpoints.ts', 'src/api/contracts.ts', 'src/features/catalog/queries.ts', 'mocks/browser.ts']),
   ],
   resolve: {
     alias: {
@@ -46,6 +47,23 @@ export default defineConfig({
       '@mocks': path.resolve(import.meta.dirname, 'mocks'),
       // remove a lista de sufixos públicos do bundle do MSW (ver mocks/shims/tldts.ts)
       tldts: path.resolve(import.meta.dirname, 'mocks/shims/tldts.ts'),
+    },
+  },
+  build: {
+    rolldownOptions: {
+      output: {
+        // poucos chunks estáveis em vez de dezenas de fragmentos: menos requisições em fila
+        // (HTTP/1.1 limita conexões por origem) e melhor reaproveitamento de cache entre deploys
+        advancedChunks: {
+          groups: [
+            { name: 'react', test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/, priority: 30 },
+            { name: 'tanstack', test: /node_modules[\\/]@tanstack[\\/]/, priority: 25 },
+            // constantes de domínio isoladas: o shell as usa sem carregar o zod (que vive em contracts)
+            { name: 'constants', test: /src[\\/]api[\\/]constants\.ts$/, priority: 20 },
+            { name: 'data', test: /node_modules[\\/](axios|zod|big\.js)[\\/]|src[\\/]api[\\/]/, priority: 15 },
+          ],
+        },
+      },
     },
   },
   server: { port: 5173 },

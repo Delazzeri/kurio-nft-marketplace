@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { isApiError } from '@/api/client'
+import { isApiError } from '@/api/errors'
 import type { NetworkId, WalletSession, WalletType } from '@/api/contracts'
 import { api } from '@/api/endpoints'
 import { qk } from '@/api/query-keys'

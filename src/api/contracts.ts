@@ -45,45 +45,8 @@ export type ApiErrorBody = z.infer<typeof apiErrorSchema>
 
 /* ------------------------------------------------------------------ Catálogo */
 
-export const categories = [
-  { id: 'arte-digital', label: 'Arte digital' },
-  { id: 'fotografia', label: 'Fotografia' },
-  { id: 'musica', label: 'Música' },
-  { id: 'arte-3d', label: 'Arte 3D' },
-  { id: 'colecionaveis', label: 'Colecionáveis' },
-  { id: 'generativa', label: 'Generativa' },
-  { id: 'jogos', label: 'Jogos' },
-  { id: 'assinaturas', label: 'Assinaturas' },
-  { id: 'utilidade', label: 'Utilidade' },
-] as const
-export const categoryIds = categories.map((c) => c.id) as [CategoryId, ...CategoryId[]]
-export type CategoryId = (typeof categories)[number]['id']
-
-export const networks = [
-  { id: 'ethereum', label: 'Ethereum' },
-  { id: 'polygon', label: 'Polygon' },
-  { id: 'solana', label: 'Solana' },
-] as const
-export type NetworkId = (typeof networks)[number]['id']
-export const networkIds = networks.map((n) => n.id) as [NetworkId, ...NetworkId[]]
-
-export const sortOptions = [
-  { id: 'recent', label: 'Listados recentemente' },
-  { id: 'price-asc', label: 'Menor preço' },
-  { id: 'price-desc', label: 'Maior preço' },
-  { id: 'popular', label: 'Mais populares' },
-  { id: 'name', label: 'Nome (A–Z)' },
-] as const
-export type SortId = (typeof sortOptions)[number]['id']
-export const sortIds = sortOptions.map((s) => s.id) as [SortId, ...SortId[]]
-
-export const catalogTabs = [
-  { id: 'all', label: 'Todos os NFTs' },
-  { id: 'new', label: 'Novos lançamentos' },
-  { id: 'trending', label: 'Em alta' },
-] as const
-export type CatalogTab = (typeof catalogTabs)[number]['id']
-export const catalogTabIds = catalogTabs.map((t) => t.id) as [CatalogTab, ...CatalogTab[]]
+export * from './constants'
+import { catalogTabIds, categoryIds, networkIds, sortIds, walletTypeIds } from './constants'
 
 export const editionSchema = z.object({
   id: z.string(),
@@ -107,7 +70,10 @@ export const nftSummarySchema = z.object({
   imageAlt: z.string(),
   collection: z.object({ id: z.string(), name: z.string() }),
   category: z.enum(categoryIds),
+  /** Rede principal (cunhagem) */
   network: z.enum(networkIds),
+  /** Todas as redes em que o NFT está listado (multichain inclui a principal) */
+  networks: z.array(z.enum(networkIds)).min(1),
   /** Menor preço entre edições disponíveis (ou da edição padrão se esgotado) */
   price: ethString,
   compareAtPrice: ethString.optional(),
@@ -269,13 +235,6 @@ export type PasswordChangeInput = z.infer<typeof passwordChangeSchema>
 
 /* ------------------------------------------------------------------ Carteiras */
 
-export const walletTypes = [
-  { id: 'metamask', label: 'MetaMask' },
-  { id: 'walletconnect', label: 'WalletConnect' },
-  { id: 'coinbase', label: 'Coinbase Wallet' },
-] as const
-export type WalletType = (typeof walletTypes)[number]['id']
-export const walletTypeIds = walletTypes.map((w) => w.id) as [WalletType, ...WalletType[]]
 
 export const walletInputSchema = z.object({
   displayName: z.string().trim().min(2, 'Mínimo de 2 caracteres'),

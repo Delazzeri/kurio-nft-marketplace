@@ -1,10 +1,10 @@
 import { QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { lazy, Suspense } from 'react'
-import { TooltipProvider } from '@/components/ui/tooltip'
 import { NotFound } from '@/components/states'
 import { RealtimeProvider } from '@/realtime/RealtimeProvider'
 import { routeTree } from '@/routeTree.gen'
+import '@/auth/session-cleanup'
 import { queryClient } from './query-client'
 import { parseSearch, stringifySearch } from './search-params'
 
@@ -40,9 +40,7 @@ export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <RealtimeProvider>
-        <TooltipProvider delayDuration={200}>
-          <RouterProvider router={router} />
-        </TooltipProvider>
+        <RouterProvider router={router} />
       </RealtimeProvider>
       <Suspense>
         <ReactQueryDevtools buttonPosition="bottom-left" />

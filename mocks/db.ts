@@ -19,7 +19,8 @@ import type {
 import { DEFAULT_SCENARIO, createRng, getScenarioById, type Scenario } from './scenarios'
 import { MAX_QTY_PER_ITEM, buildSeedNfts, coupons, networkFees, seedUsers, type SeedUser } from './seed'
 
-const STORAGE_KEY = 'kurio:mock:db:v1'
+// v2: catálogo não é mais persistido inteiro — só os patches (preço/estoque/versão)
+const STORAGE_KEY = 'kurio:mock:db:v2'
 const SCENARIO_KEY = 'kurio:mock:scenario'
 const DEFAULT_PAYMENT_DELAY = 3000
 const SESSION_TTL = 2 * 60 * 60 * 1000
@@ -62,7 +63,10 @@ export interface WalletSessionRecord {
 interface State {
   users: SeedUser[]
   sessions: Record<string, StoredSession>
+  /** catálogo em memória (seed + patches); não é persistido */
   nfts: NftDetail[]
+  /** alterações do catálogo desde o seed — é isso que vai para o localStorage */
+  nftPatches: Record<string, { version: number; editions: { id: string; price: string; available: number }[] }>
   favorites: Record<string, string[]>
   carts: Record<string, StoredCart>
   userCarts: Record<string, string>
@@ -81,6 +85,7 @@ function seedState(): State {
     users: structuredClone(seedUsers),
     sessions: {},
     nfts: buildSeedNfts(),
+    nftPatches: {},
     favorites: { usr_ana: ['sage-nomad-009'], usr_bruno: [] },
     carts: {},
     userCarts: {},
@@ -115,10 +120,29 @@ function seedState(): State {
   }
 }
 
+function applyPatches(nfts: NftDetail[], patches: State['nftPatches']) {
+  for (const nft of nfts) {
+    const patch = patches[nft.id]
+    if (!patch) continue
+    nft.version = patch.version
+    for (const e of patch.editions) {
+      const edition = nft.editions.find((x) => x.id === e.id)
+      if (edition) Object.assign(edition, { price: e.price, available: e.available })
+    }
+    const summary = toSummary(nft)
+    nft.price = summary.price
+    nft.available = summary.available
+  }
+  return nfts
+}
+
 function load(): State {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) return JSON.parse(raw) as State
+    if (raw) {
+      const stored = JSON.parse(raw) as Omit<State, 'nfts'>
+      return { ...stored, nfts: applyPatches(buildSeedNfts(), stored.nftPatches ?? {}) }
+    }
   } catch {
     /* estado corrompido → seed */
   }
@@ -146,7 +170,9 @@ function readScenarioId() {
 
 export function persist() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { nfts, ...persisted } = state
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted))
   } catch {
     /* cota */
   }
@@ -226,6 +252,7 @@ export function toSummary(nft: NftDetail): NftSummary {
     collection: nft.collection,
     category: nft.category,
     network: nft.network,
+    networks: nft.networks,
     price: def.price,
     compareAtPrice: def.compareAtPrice,
     available: nft.editions.reduce((acc, e) => acc + e.available, 0),
@@ -256,6 +283,7 @@ export function updateNftEdition(
   const summary = toSummary(nft)
   nft.price = summary.price
   nft.available = summary.available
+  state.nftPatches[nft.id] = { version: nft.version, editions: nft.editions.map((e) => ({ id: e.id, price: e.price, available: e.available })) }
   persist()
   const event: NftUpdatedEvent = {
     type: 'nft.updated',

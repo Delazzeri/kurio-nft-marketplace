@@ -1,5 +1,4 @@
 import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
-import { authService } from '@/auth/auth-service'
 import { sessionStore } from '@/auth/session-store'
 
 /**
@@ -9,6 +8,7 @@ import { sessionStore } from '@/auth/session-store'
  */
 export const Route = createFileRoute('/_auth')({
   beforeLoad: async ({ location }) => {
+    const { authService } = await import('@/auth/auth-service')
     const user = await authService.ensureSession()
     if (!user) {
       const expired = sessionStore.get().endedBy === 'expired'

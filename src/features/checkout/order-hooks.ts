@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useRef } from 'react'
-import { ApiError, isApiError } from '@/api/client'
+import { ApiError, isApiError } from '@/api/errors'
 import { quoteSchema, type CreateOrderInput, type Order, type Quote } from '@/api/contracts'
 import { api } from '@/api/endpoints'
 import { qk } from '@/api/query-keys'

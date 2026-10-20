@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 import { useId, useState, type FormEvent } from 'react'
-import { isApiError } from '@/api/client'
+import { isApiError } from '@/api/errors'
 import type { Cart } from '@/api/contracts'
 import { Button } from '@/components/ui/button'
 import { useCoupon } from './queries'

@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { ArrowRight } from 'lucide-react'
 import { notAvailable } from '@/components/states'
 import { Button } from '@/components/ui/button'
+import { thumbnail } from '@/lib/images'
 
 export function PromoBanners() {
   const promos = [
@@ -21,10 +22,10 @@ export function PromoBanners() {
     },
   ]
   return (
-    <section aria-label="Coleções em destaque" className="container-page mt-24 grid gap-6 md:grid-cols-2">
+    <section aria-label="Coleções em destaque" className="below-fold container-page mt-24 grid gap-6 md:grid-cols-2">
       {promos.map((p) => (
         <article key={p.title} className="grid grid-cols-[minmax(0,45%)_1fr] items-center overflow-hidden rounded-sm bg-card">
-          <img src={p.image} alt={p.alt} width={240} height={210} loading="lazy" className="h-full w-full object-cover" />
+          <img src={p.image} alt={p.alt} width={240} height={210} loading="lazy" fetchPriority="low" className="h-full w-full object-cover" />
           <div className="flex flex-col items-end gap-3 p-4 text-right">
             <h2 className="text-sm font-bold sm:text-base">{p.title}</h2>
             <p className="text-xs leading-relaxed text-muted-foreground">{p.text}</p>
@@ -49,7 +50,7 @@ const posts = [
 
 export function Journal() {
   return (
-    <section aria-labelledby="diario-titulo" className="container-page mt-24">
+    <section aria-labelledby="diario-titulo" className="below-fold container-page mt-24">
       <h2 id="diario-titulo" className="text-center text-2xl font-bold">
         Diário da Cunhagem
       </h2>
@@ -58,7 +59,7 @@ export function Journal() {
         {posts.map((p) => (
           <li key={p.title}>
             <article className="flex h-full flex-col bg-card">
-              <img src={p.image} alt="" width={224} height={162} loading="lazy" className="aspect-[224/162] w-full object-cover" />
+              <img src={thumbnail(p.image)} alt="" width={224} height={162} loading="lazy" fetchPriority="low" className="aspect-[224/162] w-full object-cover" />
               <div className="flex flex-1 flex-col gap-2 p-3">
                 <p className="text-[11px] text-muted-foreground">
                   {p.date} | Leitura de {p.read}

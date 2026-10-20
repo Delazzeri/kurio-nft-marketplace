@@ -1,43 +1,59 @@
-import { z } from 'zod'
-import { catalogTabIds, categoryIds, networkIds, sortIds, type NftListQuery } from '@/api/contracts'
-
-const arrayOf = <T extends string>(values: readonly [T, ...T[]]) =>
-  z
-    .union([z.array(z.string()), z.string()])
-    .transform((v) => (Array.isArray(v) ? v : v.split(',')).filter((x): x is T => (values as readonly string[]).includes(x)))
-    .transform((v) => (v.length ? [...new Set(v)].sort() : undefined))
-    .optional()
-    .catch(undefined)
-
-const ethParam = z
-  .union([z.string(), z.number()])
-  .transform((v) => String(v))
-  .pipe(z.string().regex(/^\d+(\.\d+)?$/))
-  .optional()
-  .catch(undefined)
+import {
+  catalogTabIds,
+  categoryIds,
+  networkIds,
+  sortIds,
+  type CatalogTab,
+  type CategoryId,
+  type NetworkId,
+  type SortId,
+} from '@/api/constants'
+import type { NftListQuery } from '@/api/contracts'
 
 /**
  * Estado do catálogo na URL — sobrevive a refresh, compartilhamento e histórico.
  * Parâmetros inválidos são descartados em vez de quebrar a página.
+ * (Parser sem dependências: roda na resolução da rota, antes da primeira pintura.)
  */
-export const catalogSearchSchema = z.object({
-  q: z
-    .string()
-    .trim()
-    .max(80)
-    .transform((v) => v || undefined)
-    .optional()
-    .catch(undefined),
-  cat: arrayOf(categoryIds),
-  net: arrayOf(networkIds),
-  min: ethParam,
-  max: ethParam,
-  tab: z.enum(catalogTabIds).optional().catch(undefined),
-  sort: z.enum(sortIds).optional().catch(undefined),
-  page: z.coerce.number().int().positive().optional().catch(undefined),
-})
+export interface CatalogSearch {
+  q?: string
+  cat?: CategoryId[]
+  net?: NetworkId[]
+  min?: string
+  max?: string
+  tab?: CatalogTab
+  sort?: SortId
+  page?: number
+}
 
-export type CatalogSearch = z.infer<typeof catalogSearchSchema>
+const oneOf = <T extends string>(values: readonly T[], v: unknown): T | undefined =>
+  typeof v === 'string' && (values as readonly string[]).includes(v) ? (v as T) : undefined
+
+const listOf = <T extends string>(values: readonly T[], v: unknown): T[] | undefined => {
+  const raw = Array.isArray(v) ? v : typeof v === 'string' ? v.split(',') : []
+  const valid = [...new Set(raw.filter((x): x is T => (values as readonly string[]).includes(String(x))))].sort()
+  return valid.length ? valid : undefined
+}
+
+const eth = (v: unknown) => {
+  const s = typeof v === 'number' ? String(v) : v
+  return typeof s === 'string' && /^\d+(\.\d+)?$/.test(s) ? s : undefined
+}
+
+export function parseCatalogSearch(raw: Record<string, unknown>): CatalogSearch {
+  const q = typeof raw.q === 'string' ? raw.q.trim().slice(0, 80) : ''
+  const page = Number(raw.page)
+  return {
+    q: q || undefined,
+    cat: listOf(categoryIds, raw.cat),
+    net: listOf(networkIds, raw.net),
+    min: eth(raw.min),
+    max: eth(raw.max),
+    tab: oneOf(catalogTabIds, raw.tab),
+    sort: oneOf(sortIds, raw.sort),
+    page: Number.isInteger(page) && page > 0 ? page : undefined,
+  }
+}
 
 export const PAGE_SIZE = 9
 

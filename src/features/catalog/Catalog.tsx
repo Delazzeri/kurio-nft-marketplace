@@ -1,11 +1,10 @@
 import { Link, useNavigate } from '@tanstack/react-router'
 import { ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react'
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { catalogTabs, categories, networks, sortOptions } from '@/api/contracts'
 import { EmptyState, ErrorState } from '@/components/states'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { announce } from '@/lib/announce'
 import { cn } from '@/lib/utils'
 import { Filters } from './Filters'
@@ -13,6 +12,8 @@ import { NftCard, NftCardSkeleton } from './NftCard'
 import { useNftList } from './queries'
 import { PAGE_SIZE, toApiQuery, type CatalogSearch } from './search'
 import { Spotlight } from './Spotlight'
+
+const FiltersDrawer = lazy(() => import('./FiltersDrawer'))
 
 export function Catalog({
   search,
@@ -112,34 +113,19 @@ export function Catalog({
               })}
             </div>
             <div className="flex items-center gap-2 pb-2">
-              <Sheet open={filtersOpen} onOpenChange={onFiltersOpenChange}>
-                <SheetTrigger asChild>
-                  <Button variant="outline" size="sm" className="hidden md:inline-flex lg:hidden">
-                    <SlidersHorizontal aria-hidden /> Filtros{activeChips.length ? ` (${activeChips.length})` : ''}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent
-                  side="left"
-                  className="w-[88vw] max-w-sm overflow-y-auto border-border bg-background"
-                  onCloseAutoFocus={(e) => {
-                    // no mobile o drawer é aberto pelo botão da barra de busca (fora do Sheet)
-                    const opener = document.getElementById('abrir-filtros-mobile')
-                    if (opener && opener.offsetParent !== null) {
-                      e.preventDefault()
-                      opener.focus()
-                    }
-                  }}
-                >
-                  <SheetHeader>
-                    <SheetTitle>Filtros</SheetTitle>
-                    <SheetDescription>Os resultados são atualizados a cada seleção.</SheetDescription>
-                  </SheetHeader>
-                  <div className="flex flex-col gap-8 px-4 pb-8">
-                    <div className="flex flex-col gap-2 md:hidden">{sortControl('ordenacao-mobile')}</div>
-                    {filters}
-                  </div>
-                </SheetContent>
-              </Sheet>
+              <Button variant="outline" size="sm" className="hidden md:inline-flex lg:hidden" onClick={() => onFiltersOpenChange(true)}>
+                <SlidersHorizontal aria-hidden /> Filtros{activeChips.length ? ` (${activeChips.length})` : ''}
+              </Button>
+              {filtersOpen && (
+                <Suspense>
+                  <FiltersDrawer onClose={() => onFiltersOpenChange(false)}>
+                    <div className="flex flex-col gap-8 px-4 pb-8">
+                      <div className="flex flex-col gap-2 md:hidden">{sortControl('ordenacao-mobile')}</div>
+                      {filters}
+                    </div>
+                  </FiltersDrawer>
+                </Suspense>
+              )}
               <div className="hidden items-center gap-2 md:flex">{sortControl('ordenacao')}</div>
             </div>
           </div>
@@ -221,9 +207,19 @@ export function Catalog({
   )
 }
 
+/** Páginas visíveis: primeiras, vizinhas da atual e última, com reticências nos saltos (ex.: 1 2 3 4 … 27). */
+export function visiblePages(page: number, total: number): (number | 'gap')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const set = new Set([1, total, page - 1, page, page + 1])
+  if (page <= 3) [2, 3, 4].forEach((p) => set.add(p))
+  if (page >= total - 2) [total - 3, total - 2, total - 1].forEach((p) => set.add(p))
+  const sorted = [...set].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b)
+  return sorted.flatMap((p, i) => (i > 0 && p - sorted[i - 1]! > 1 ? (['gap', p] as const) : [p]))
+}
+
 function Pagination({ page, totalPages, search }: { page: number; totalPages: number; search: CatalogSearch }) {
   if (totalPages <= 1) return null
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
+  const pages = visiblePages(page, totalPages)
   const cls = 'flex size-8 items-center justify-center rounded-sm border border-border text-sm hover:border-primary'
   return (
     <nav aria-label="Paginação" className="mt-10 flex justify-end">
@@ -235,7 +231,12 @@ function Pagination({ page, totalPages, search }: { page: number; totalPages: nu
             </Link>
           </li>
         )}
-        {pages.map((p) => (
+        {pages.map((p, i) =>
+          p === 'gap' ? (
+            <li key={`gap-${i}`} aria-hidden className="flex size-8 items-end justify-center text-sm text-muted-foreground">
+              …
+            </li>
+          ) : (
           <li key={p}>
             <Link
               to="/"
@@ -248,7 +249,8 @@ function Pagination({ page, totalPages, search }: { page: number; totalPages: nu
               {p}
             </Link>
           </li>
-        ))}
+          ),
+        )}
         {page < totalPages && (
           <li>
             <Link to="/" search={{ ...search, page: page + 1 }} hash="catalogo" className={cls} aria-label="Próxima página">

@@ -3,6 +3,7 @@
  */
 import Big from 'big.js'
 import type { CategoryId, Edition, NetworkId, NftDetail } from '@/api/contracts'
+import { createRng } from './scenarios'
 
 export const SEED_NOW = Date.parse('2026-10-01T12:00:00.000Z')
 /** Listagens a partir desta data aparecem em "Novos lançamentos" */
@@ -85,6 +86,8 @@ interface NftSeedRow {
   collection?: string
   /** disponibilidade por edição: [1/1, 1/10, 1/50, aberta] */
   stock?: [number, number, number, number]
+  /** redes adicionais (NFT multichain) */
+  extraNetworks?: NetworkId[]
 }
 
 /* 36 NFTs = 4 páginas de 9 no catálogo, distribuídos entre categorias e redes */
@@ -163,7 +166,7 @@ function buildEditions(row: NftSeedRow): Edition[] {
 }
 
 export function buildSeedNfts(): NftDetail[] {
-  return rows.map((row, index) => {
+  return [...rows, ...generateRows()].map((row, index) => {
     const id = slugify(row.name)
     const tokenNumber = row.name.split('#')[1] ?? String(index)
     const info = familyInfo[row.family]
@@ -180,6 +183,7 @@ export function buildSeedNfts(): NftDetail[] {
       collection: { id: 'kurio-apes', name: collectionName },
       category: row.category,
       network: row.network,
+      networks: [row.network, ...(row.extraNetworks ?? [])],
       price: row.price,
       compareAtPrice: row.compareAtPrice,
       available: editions.reduce((acc, e) => acc + e.available, 0),
@@ -205,6 +209,112 @@ export function buildSeedNfts(): NftDetail[] {
       defaultEditionId: '1-50',
     }
   })
+}
+
+/* ------------------------------------------------------------------ Catálogo completo
+ * O Figma mostra 239 NFTs por coleção (33+12+65+39+23+17+19+13+18) e 283 por rede (119+78+86).
+ * Para fechar os dois números, 44 NFTs são multichain (listados em duas redes).
+ * Os 36 itens acima são fixos; o restante é gerado de forma determinística (PRNG com seed fixa).
+ */
+export const CATEGORY_TARGETS: Record<CategoryId, number> = {
+  'arte-digital': 33,
+  fotografia: 12,
+  musica: 65,
+  'arte-3d': 39,
+  colecionaveis: 23,
+  generativa: 17,
+  jogos: 19,
+  assinaturas: 13,
+  utilidade: 18,
+}
+/** Rede principal de cada NFT (soma 239) */
+const PRIMARY_NETWORK_TARGETS: Record<NetworkId, number> = { ethereum: 99, polygon: 60, solana: 80 }
+/** Listagens adicionais dos NFTs multichain (soma 44) → totais por rede 119 / 78 / 86 */
+const SECONDARY_NETWORK_TARGETS: Record<NetworkId, number> = { ethereum: 20, polygon: 18, solana: 6 }
+
+const adjectives = [
+  'Amber', 'Azure', 'Brass', 'Cedar', 'Citrus', 'Clover', 'Coal', 'Cobalt', 'Copper', 'Coral', 'Crimson', 'Dune', 'Dusk', 'Ebony',
+  'Ember', 'Fern', 'Forest', 'Frost', 'Ginger', 'Granite', 'Harbor', 'Hazel', 'Heather', 'Honey', 'Indigo', 'Iris', 'Jade', 'Juniper',
+  'Lavender', 'Lilac', 'Linen', 'Lunar', 'Maple', 'Marble', 'Meadow', 'Mint', 'Misty', 'Moss', 'Neon', 'Nova', 'Obsidian', 'Ochre',
+  'Olive', 'Onyx', 'Opal', 'Pearl', 'Pine', 'Plum', 'Quartz', 'Rose', 'Ruby', 'Russet', 'Saffron', 'Sand', 'Scarlet', 'Shadow',
+  'Silver', 'Slate', 'Solar', 'Storm', 'Sunlit', 'Teal', 'Thistle', 'Topaz', 'Velvet', 'Verdant', 'Willow',
+]
+const familyNouns: Record<Family, string[]> = {
+  emerald: ['Ape', 'Captain', 'Pilot', 'Aviator', 'Ace', 'Racer', 'Shades', 'Navigator'],
+  sage: ['Nomad', 'Wanderer', 'Ranger', 'Drifter', 'Scout', 'Pilgrim', 'Hiker', 'Rover'],
+  baron: ['Baron', 'Duke', 'Monarch', 'Count', 'Regent', 'Envoy', 'Consul', 'Marquis'],
+  golden: ['Beat', 'Pulse', 'Groove', 'Echo', 'Tempo', 'Rhythm', 'Loop', 'Signal'],
+}
+const families: Family[] = ['emerald', 'sage', 'baron', 'golden']
+
+function shuffle<T>(items: T[], rand: () => number): T[] {
+  const a = [...items]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1))
+    ;[a[i], a[j]] = [a[j]!, a[i]!]
+  }
+  return a
+}
+
+function slots<K extends string>(targets: Record<K, number>, existing: Partial<Record<K, number>>): K[] {
+  return (Object.keys(targets) as K[]).flatMap((k) => Array.from({ length: targets[k] - (existing[k] ?? 0) }, () => k))
+}
+
+function generateRows(): NftSeedRow[] {
+  const rand = createRng(2026)
+  const count = <K extends string>(pick: (r: NftSeedRow) => K) =>
+    rows.reduce<Partial<Record<K, number>>>((acc, r) => ({ ...acc, [pick(r)]: (acc[pick(r)] ?? 0) + 1 }), {})
+
+  const categorySlots = shuffle(slots(CATEGORY_TARGETS, count((r) => r.category)), rand)
+  const networkSlots = shuffle(slots(PRIMARY_NETWORK_TARGETS, count((r) => r.network)), rand)
+  const usedNames = new Set(rows.map((r) => r.name.split(' #')[0]))
+  const usedTokens = new Set(rows.map((r) => r.name.split('#')[1]))
+
+  const generated = categorySlots.map((category, i): NftSeedRow => {
+    const family = families[Math.floor(rand() * families.length)]!
+    let base: string
+    do {
+      const adj = adjectives[Math.floor(rand() * adjectives.length)]!
+      const noun = familyNouns[family][Math.floor(rand() * familyNouns[family].length)]!
+      base = `${adj} ${noun}`
+    } while (usedNames.has(base))
+    usedNames.add(base)
+    let token: string
+    do token = String(1 + Math.floor(rand() * 998)).padStart(3, '0')
+    while (usedTokens.has(token))
+    usedTokens.add(token)
+
+    // preços concentrados abaixo de 3 ETH, dentro da faixa do Figma (0,02 – 12,30)
+    const price = (0.05 + Math.pow(rand(), 2.2) * 8.9).toFixed(2)
+    // ~12% são lançamentos recentes (aba "Novos lançamentos")
+    const daysAgo = rand() < 0.12 ? 1 + Math.floor(rand() * 15) : 17 + Math.floor(rand() * 380)
+    const soldOutUnique = rand() < 0.35
+    return {
+      name: `${base} #${token}`,
+      family,
+      category,
+      network: networkSlots[i]!,
+      price,
+      compareAtPrice: rand() < 0.08 ? (Number(price) * 1.18).toFixed(2) : undefined,
+      daysAgo,
+      popularity: 5 + Math.floor(rand() * 90),
+      badge: rand() < 0.04 ? 'RARO' : undefined,
+      stock: [soldOutUnique ? 0 : 1, 1 + Math.floor(rand() * 9), 3 + Math.floor(rand() * 45), 500],
+    }
+  })
+
+  // NFTs multichain: rede adicional diferente da principal
+  const pool = shuffle(slots(SECONDARY_NETWORK_TARGETS, {}), rand)
+  const candidates = shuffle(
+    generated.map((_, i) => i),
+    rand,
+  )
+  for (const network of pool) {
+    const index = candidates.findIndex((i) => generated[i]!.network !== network)
+    const [chosen] = candidates.splice(index, 1)
+    generated[chosen!]!.extraNetworks = [network]
+  }
+  return generated
 }
 
 function labelNetwork(n: NetworkId) {

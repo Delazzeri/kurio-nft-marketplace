@@ -3,10 +3,15 @@ import { HeadContent, Outlet, createRootRouteWithContext, useRouterState } from 
 import { lazy, Suspense, useEffect, useRef } from 'react'
 import { SessionWatcher } from '@/auth/SessionWatcher'
 import { Footer } from '@/components/layout/Footer'
-import { Header } from '@/components/layout/Header'
 import { MobileTabBar } from '@/components/layout/MobileNav'
 import { LiveRegion, NotFound } from '@/components/states'
-import { Toaster } from '@/components/ui/sonner'
+import { useAfterLoadIdle } from '@/lib/idle'
+import { useIsDesktop } from '@/lib/use-media'
+
+const Toaster = lazy(() => import('@/components/ui/sonner').then((m) => ({ default: m.Toaster })))
+
+// header só existe no desktop: carregado sob demanda (fora do bundle crítico do mobile)
+const Header = lazy(() => import('@/components/layout/Header').then((m) => ({ default: m.Header })))
 
 const MockPanel = import.meta.env.VITE_ENABLE_MOCKS !== 'false' ? lazy(() => import('@mocks/MockPanel')) : () => null
 
@@ -37,6 +42,9 @@ function RootLayout() {
   const mainRef = useFocusOnNavigate()
   // telas de autenticação no mobile são tela cheia (frames mobile de Login/Cadastro)
   const authScreen = useRouterState({ select: (s) => s.matches.some((m) => m.staticData?.authScreen) })
+  const isDesktop = useIsDesktop()
+  // toasts e painel de mocks só depois da primeira tela (não disputam a thread com o LCP)
+  const deferredReady = useAfterLoadIdle()
   const showTabs = useRouterState({ select: (s) => !s.matches.some((m) => m.staticData?.authScreen || m.staticData?.hideMobileTabs) })
   return (
     <>
@@ -45,28 +53,34 @@ function RootLayout() {
         Pular para o conteúdo
       </a>
       {/* no mobile cada tela tem seu topo (frames mobile); header completo a partir de md */}
-      <div className="max-md:hidden">
-        <Header />
-      </div>
+      {isDesktop && (
+        <Suspense fallback={<div aria-hidden className="container-page h-[68px]" />}>
+          <Header />
+        </Suspense>
+      )}
       {/* altura mínima de uma tela: o footer não aparece (e não é empurrado) enquanto o conteúdo carrega — evita CLS */}
       <main id="conteudo" ref={mainRef} tabIndex={-1} className="min-h-dvh outline-none">
         <Outlet />
       </main>
-      <div className={authScreen ? 'max-md:hidden' : undefined}>
-        <Footer />
-      </div>
-      {showTabs && (
+      {(isDesktop || !authScreen) && <Footer />}
+      {showTabs && !isDesktop && (
         <>
-          <div aria-hidden className="h-28 md:hidden" />
+          <div aria-hidden className="h-28" />
           <MobileTabBar />
         </>
       )}
-      <Toaster />
+      {deferredReady && (
+        <Suspense>
+          <Toaster />
+        </Suspense>
+      )}
       <LiveRegion />
       <SessionWatcher />
-      <Suspense>
-        <MockPanel />
-      </Suspense>
+      {deferredReady && (
+        <Suspense>
+          <MockPanel />
+        </Suspense>
+      )}
     </>
   )
 }

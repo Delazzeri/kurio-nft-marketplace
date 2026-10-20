@@ -2,7 +2,10 @@ import axios, { AxiosError, type AxiosRequestConfig } from 'axios'
 import type { ZodType } from 'zod'
 import { guestCart, sessionStore } from '@/auth/session-store'
 import { mocksReady } from '@/app/mocks-ready'
-import { apiErrorSchema, type ErrorCode } from './contracts'
+import { apiErrorSchema } from './contracts'
+import { ApiError, isApiError } from './errors'
+
+export { ApiError, isApiError }
 
 export const REQUEST_TIMEOUT_MS = 10_000
 
@@ -21,35 +24,6 @@ http.interceptors.request.use(async (config) => {
   return config
 })
 
-/** Erro normalizado — a UI nunca lida com AxiosError diretamente. */
-export class ApiError extends Error {
-  readonly status: number
-  readonly code: ErrorCode | 'NETWORK_ERROR' | 'TIMEOUT' | 'ABORTED' | 'INVALID_RESPONSE'
-  readonly fields?: Record<string, string>
-  readonly details?: unknown
-  readonly retryable: boolean
-
-  constructor(init: {
-    status: number
-    code: ApiError['code']
-    message: string
-    fields?: Record<string, string>
-    details?: unknown
-    retryable?: boolean
-  }) {
-    super(init.message)
-    this.name = 'ApiError'
-    this.status = init.status
-    this.code = init.code
-    this.fields = init.fields
-    this.details = init.details
-    this.retryable = init.retryable ?? (init.status === 0 || init.status >= 500)
-  }
-}
-
-export function isApiError(e: unknown): e is ApiError {
-  return e instanceof ApiError
-}
 
 function normalize(error: unknown): ApiError {
   if (error instanceof ApiError) return error

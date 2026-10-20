@@ -1,8 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { AlertTriangle, RefreshCw, SearchX, WifiOff } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
-import { toast } from 'sonner'
-import { isApiError } from '@/api/client'
+import { isApiError } from '@/api/errors'
 import { Button } from '@/components/ui/button'
 import { onAnnounce } from '@/lib/announce'
 import { cn } from '@/lib/utils'
@@ -90,5 +89,5 @@ export function LiveRegion() {
 
 /** Ação fora do escopo da entrega: não simula sucesso, informa claramente. */
 export function notAvailable(feature: string) {
-  toast.info(`${feature} não faz parte desta demonstração.`)
+  void import('sonner').then(({ toast }) => toast.info(`${feature} não faz parte desta demonstração.`))
 }

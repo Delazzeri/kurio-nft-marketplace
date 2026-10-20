@@ -4,6 +4,7 @@ import { useState } from 'react'
 import type { NftSummary } from '@/api/contracts'
 import { Button } from '@/components/ui/button'
 import { thumbnail } from '@/lib/images'
+import { useIsDesktop } from '@/lib/use-media'
 import { cn } from '@/lib/utils'
 import { useFeatured } from './queries'
 
@@ -26,11 +27,12 @@ export function Hero() {
   const items = data?.hero ?? []
   const current = items[index]
   const secondary = items[(index + 1) % Math.max(items.length, 1)]
+  const isDesktop = useIsDesktop()
 
-  return (
-    <>
-      {/* ------- Mobile: card (frame Mobile / Início) ------- */}
-      <section aria-labelledby="hero-titulo-mobile" className="px-6 pt-4 md:hidden">
+  if (!isDesktop) {
+    return (
+      /* ------- Mobile: card (frame Mobile / Início) ------- */
+      <section aria-labelledby="hero-titulo-mobile" className="px-6 pt-4">
         <div className="relative overflow-hidden rounded-[22px] bg-card p-4">
           <span aria-hidden className="absolute -top-24 left-1/3 size-72 rounded-full bg-accent/40" />
           <div className="relative grid grid-cols-[1fr_138px] gap-3">
@@ -60,9 +62,12 @@ export function Hero() {
           <Dots items={items} index={index} onSelect={setIndex} className="relative mt-1 justify-center" />
         </div>
       </section>
+    )
+  }
 
-      {/* ------- Desktop / tablet ------- */}
-      <section aria-labelledby="hero-titulo" className="container-page hidden items-center gap-8 pt-4 md:grid md:grid-cols-[1fr_minmax(0,450px)]">
+  return (
+      /* ------- Desktop / tablet ------- */
+      <section aria-labelledby="hero-titulo" className="container-page grid grid-cols-[1fr_minmax(0,450px)] items-center gap-8 pt-4">
         <div className="flex flex-col gap-5 md:pl-10">
           <p className="text-sm">Bem-vindo à Kurio</p>
           <h1 id="hero-titulo" className="text-3xl leading-[1.35] font-bold tracking-wide sm:text-4xl lg:text-[44px]">
@@ -93,6 +98,5 @@ export function Hero() {
           )}
         </div>
       </section>
-    </>
   )
 }

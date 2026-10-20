@@ -58,7 +58,7 @@ function buildFilters(q: NftListQuery) {
       return true
     },
     categories: (n) => !q.categories?.length || q.categories.includes(n.category),
-    networks: (n) => !q.networks?.length || q.networks.includes(n.network),
+    networks: (n) => !q.networks?.length || n.networks.some((net) => q.networks!.includes(net)),
   }
   return filters
 }
@@ -115,7 +115,7 @@ export const catalogHandlers = [
         totalPages,
         facets: {
           categories: categories.map((c) => ({ id: c.id, label: c.label, count: forCategories.filter((n) => n.category === c.id).length })),
-          networks: networks.map((n) => ({ id: n.id, label: n.label, count: forNetworks.filter((x) => x.network === n.id).length })),
+          networks: networks.map((n) => ({ id: n.id, label: n.label, count: forNetworks.filter((x) => x.networks.includes(n.id)).length })),
           priceRange: { min: min.toFixed(2), max: max.toFixed(2) },
         },
         appliedQuery: { ...query, page, pageSize, sort },

@@ -1,7 +1,7 @@
 /**
  * Auditoria Lighthouse: `pnpm lighthouse` (gera build, sobe o preview e audita).
- * Opções: --url=https://… para auditar outro ambiente (ex.: deploy na Vercel).
- * Saída: lighthouse/reports/<página>-<perfil>-run<n>.report.{html,json} + summary.{json,md}
+ * Opções: --url=https://… para auditar o deploy (ex.: Vercel) → lighthouse/reports/producao/
+ * Saída: lighthouse/reports/{local|producao}/<página>-<perfil>-run<n>.report.{html,json} + summary.{json,md}
  */
 import { spawn } from 'node:child_process'
 import fs from 'node:fs/promises'
@@ -14,8 +14,9 @@ import desktopConfig from 'lighthouse/core/config/desktop-config.js'
 import { CATEGORIES, CHROME_FLAGS, METRICS, PAGES, PROFILES, RUNS, TARGETS } from './config.mjs'
 
 const ROOT = path.dirname(new URL(import.meta.url).pathname.replace(/^\/(\w:)/, '$1'))
-const OUT = path.join(ROOT, 'reports')
 const urlArg = process.argv.find((a) => a.startsWith('--url='))?.slice(6)
+// local (vite preview, HTTP/1.1) e produção (deploy na Vercel, HTTP/2 + CDN) ficam separados
+const OUT = path.join(ROOT, 'reports', urlArg ? 'producao' : 'local')
 const BASE = urlArg ?? 'http://localhost:4174'
 
 const median = (values) => {

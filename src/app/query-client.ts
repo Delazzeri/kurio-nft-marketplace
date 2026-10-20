@@ -1,5 +1,5 @@
 import { MutationCache, QueryClient } from '@tanstack/react-query'
-import { isApiError } from '@/api/client'
+import { isApiError } from '@/api/errors'
 
 /**
  * Política de cache (documentada no ARCHITECTURE.md):

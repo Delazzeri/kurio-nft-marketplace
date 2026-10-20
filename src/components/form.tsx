@@ -1,7 +1,7 @@
 import { Eye, EyeOff } from 'lucide-react'
 import { forwardRef, useId, useState, type InputHTMLAttributes, type ReactNode } from 'react'
 import type { FieldValues, Path, UseFormSetError } from 'react-hook-form'
-import { isApiError } from '@/api/client'
+import { isApiError } from '@/api/errors'
 import { cn } from '@/lib/utils'
 
 /**

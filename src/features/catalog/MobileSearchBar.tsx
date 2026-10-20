@@ -1,18 +1,21 @@
 import { useNavigate } from '@tanstack/react-router'
 import { Search, SlidersHorizontal } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
+import { useIsDesktop } from '@/lib/use-media'
 import type { CatalogSearch } from './search'
 
 /** Topo da Início no mobile: busca + atalho de filtros (frame Mobile / Início). */
 export function MobileSearchBar({ search, onOpenFilters, activeFilters }: { search: CatalogSearch; onOpenFilters: () => void; activeFilters: number }) {
   const navigate = useNavigate({ from: '/' })
   const [value, setValue] = useState(search.q ?? '')
+  const isDesktop = useIsDesktop()
   const submit = (e: FormEvent) => {
     e.preventDefault()
     void navigate({ search: (prev) => ({ ...prev, q: value.trim() || undefined, page: undefined }), hash: 'catalogo' })
   }
+  if (isDesktop) return null
   return (
-    <div className="flex gap-2 px-6 pt-10 md:hidden">
+    <div className="flex gap-2 px-6 pt-10">
       <form role="search" onSubmit={submit} className="relative flex-1">
         <label htmlFor="busca-mobile" className="sr-only">
           Explorar coleções

@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Loader2, WifiOff, X, XCircle } from 'lucide-react'
 import { useEffect, useRef } from 'react'
-import { isApiError } from '@/api/client'
+import { isApiError } from '@/api/errors'
 import { networks, type Order } from '@/api/contracts'
 import { useSession } from '@/auth/session-store'
 import { ErrorState, NotFound } from '@/components/states'

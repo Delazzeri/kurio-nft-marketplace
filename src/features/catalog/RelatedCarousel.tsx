@@ -21,7 +21,7 @@ export function RelatedCarousel({ title, items, loading }: { title: string; item
   }
   const id = `carrossel-${title.replace(/\s+/g, '-').toLowerCase()}`
   return (
-    <section aria-labelledby={id} className="container-page mt-20">
+    <section aria-labelledby={id} className="below-fold container-page mt-20">
       <h2 id={id} className="border-b border-border pb-2 text-base font-bold text-primary">
         {title}
       </h2>

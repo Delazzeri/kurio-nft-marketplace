@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { type FormEvent } from 'react'
-import { categories } from '@/api/contracts'
+import { categories } from '@/api/constants'
 import { notAvailable } from '@/components/states'
 import { Button } from '@/components/ui/button'
 
@@ -40,7 +40,7 @@ export function Footer() {
     notAvailable('A inscrição na newsletter')
   }
   return (
-    <footer className="container-page mt-24 pb-6">
+    <footer className="below-fold container-page mt-24 pb-6">
       <div className="grid gap-8 bg-card px-6 py-8 sm:grid-cols-2 lg:grid-cols-4 lg:px-12">
         {features.map((f) => (
           <div key={f.title} className="flex flex-col gap-3 lg:border-r lg:border-primary lg:pr-6">

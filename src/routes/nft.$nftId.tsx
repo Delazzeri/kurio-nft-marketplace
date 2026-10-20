@@ -1,8 +1,8 @@
 import { createFileRoute, Link, useNavigate, useRouter } from '@tanstack/react-router'
 import { ChevronLeft, Heart, Mail, Search, ShoppingCart, Star } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { z } from 'zod'
-import { isApiError } from '@/api/client'
+import { isApiError } from '@/api/errors'
+import { networks } from '@/api/constants'
 import type { Edition, NftDetail } from '@/api/contracts'
 import { Price } from '@/components/Price'
 import { QuantityStepper } from '@/components/QuantityStepper'
@@ -12,20 +12,26 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAddToCart, useCart } from '@/features/cart/queries'
-import { nftDetailQuery, relatedQuery, useNftDetail, useRelated } from '@/features/catalog/queries'
+import { useNftDetail, useRelated } from '@/features/catalog/queries'
 import { RelatedCarousel } from '@/features/catalog/RelatedCarousel'
 import { useFavoriteState } from '@/features/favorites/FavoriteButton'
 import { announce } from '@/lib/announce'
 import { formatEth } from '@/lib/eth'
+import { useIsDesktop } from '@/lib/use-media'
 import { cn } from '@/lib/utils'
 
 const MAX_PER_ITEM = 10
+const networkLabel = (id: string) => networks.find((n) => n.id === id)?.label ?? id
 
 export const Route = createFileRoute('/nft/$nftId')({
-  validateSearch: z.object({ edicao: z.string().optional().catch(undefined) }),
+  validateSearch: (raw: Record<string, unknown>): { edicao?: string } => ({
+    edicao: typeof raw.edicao === 'string' && raw.edicao ? raw.edicao : undefined,
+  }),
   loader: ({ context, params }) => {
-    void context.queryClient.prefetchQuery(nftDetailQuery(params.nftId))
-    void context.queryClient.prefetchQuery(relatedQuery(params.nftId))
+    void import('@/features/catalog/queries').then(({ nftDetailQuery, relatedQuery }) => {
+      void context.queryClient.prefetchQuery(nftDetailQuery(params.nftId))
+      void context.queryClient.prefetchQuery(relatedQuery(params.nftId))
+    })
   },
   staticData: { hideMobileTabs: true },
   component: NftDetailPage,
@@ -83,6 +89,7 @@ function DetailBody({ nft }: { nft: NftDetail }) {
   const addToCart = useAddToCart()
   const favorite = useFavoriteState(nft.id, nft.name)
   const soldOut = edition.available === 0
+  const isDesktop = useIsDesktop()
 
   // preço alterado enquanto a página está aberta
   const lastPrice = useRef(edition.price)
@@ -157,6 +164,10 @@ function DetailBody({ nft }: { nft: NftDetail }) {
         <dd>{nft.collection.name}</dd>
       </div>
       <div className="flex gap-1">
+        <dt>Rede:</dt>
+        <dd>{nft.networks.map(networkLabel).join(' · ')}</dd>
+      </div>
+      <div className="flex gap-1">
         <dt>Atributos:</dt>
         <dd>{nft.attributes.join(', ')}</dd>
       </div>
@@ -168,7 +179,8 @@ function DetailBody({ nft }: { nft: NftDetail }) {
   return (
     <article aria-labelledby="nft-titulo">
       {/* ---------------- Mobile (frame Mobile / Detalhes do NFT) ---------------- */}
-      <div className="md:hidden">
+      {!isDesktop && (
+      <div>
         <div className="relative bg-card px-7 pt-16 pb-0">
           <button
             type="button"
@@ -231,8 +243,11 @@ function DetailBody({ nft }: { nft: NftDetail }) {
         </div>
       </div>
 
+      )}
+
       {/* ---------------- Desktop / tablet ---------------- */}
-      <div className="container-page hidden pt-6 md:block">
+      {isDesktop && (
+      <div className="container-page pt-6">
         <Breadcrumb>
           <BreadcrumbList className="text-sm font-semibold text-foreground">
             <BreadcrumbItem>
@@ -349,6 +364,8 @@ function DetailBody({ nft }: { nft: NftDetail }) {
         </div>
       </div>
 
+      )}
+
       <div className="container-page mt-10 md:mt-20">
         <Tabs defaultValue="detalhes">
           <TabsList className="h-auto w-full justify-start gap-6 overflow-x-auto rounded-none border-b border-border bg-transparent p-0 md:gap-8">
@@ -368,7 +385,10 @@ function DetailBody({ nft }: { nft: NftDetail }) {
             ))}
             <div>
               <h3 className="font-bold">Rede:</h3>
-              <p className="text-muted-foreground">Cunhado na {nft.network === 'ethereum' ? 'Ethereum' : nft.network === 'polygon' ? 'Polygon' : 'Solana'} com procedência imutável e metadados armazenados no IPFS.</p>
+              <p className="text-muted-foreground">
+                Cunhado na {networkLabel(nft.network)} com procedência imutável e metadados armazenados no IPFS.
+                {nft.networks.length > 1 && ` Também listado em ${nft.networks.slice(1).map(networkLabel).join(', ')} (multichain).`}
+              </p>
             </div>
             <div>
               <h3 className="font-bold">Contrato:</h3>

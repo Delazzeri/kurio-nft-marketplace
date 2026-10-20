@@ -1,6 +1,6 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { isApiError } from '@/api/client'
+import { isApiError } from '@/api/errors'
 import type { AddCartItemInput, Cart, NetworkId } from '@/api/contracts'
 import { api } from '@/api/endpoints'
 import { qk } from '@/api/query-keys'

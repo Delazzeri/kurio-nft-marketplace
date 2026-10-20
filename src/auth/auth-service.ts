@@ -1,19 +1,15 @@
 import type { LoginInput, RegisterInput, Session, User } from '@/api/contracts'
 import { api } from '@/api/endpoints'
-import { isApiError } from '@/api/client'
+import { isApiError } from '@/api/errors'
 import { qk } from '@/api/query-keys'
 import { queryClient } from '@/app/query-client'
 import { guestCart, sessionStore } from './session-store'
 
 let verifying: Promise<User | null> | null = null
 
-/** Ao encerrar/trocar sessão: remove todo dado privado e o carrinho/cotação do usuário anterior. */
+// limpeza de cache ao encerrar a sessão: ver session-cleanup.ts
 sessionStore.onEnd(() => {
   verifying = null
-  void queryClient.cancelQueries({ queryKey: qk.private.all })
-  queryClient.removeQueries({ queryKey: qk.private.all })
-  queryClient.removeQueries({ queryKey: qk.cartAll })
-  queryClient.removeQueries({ queryKey: qk.quoteAll })
 })
 
 async function afterAuthentication(session: Session) {

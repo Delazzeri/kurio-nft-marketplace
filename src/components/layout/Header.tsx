@@ -1,12 +1,11 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
-import { Heart, LogIn, LogOut, Menu, Search, ShoppingCart, User, Wallet, X } from 'lucide-react'
+import { LogIn, LogOut, Search, ShoppingCart, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { authService } from '@/auth/auth-service'
 import { useSession } from '@/auth/session-store'
 import { notAvailable } from '@/components/states'
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { useCart } from '@/features/cart/queries'
 import { cn } from '@/lib/utils'
 
@@ -20,16 +19,13 @@ function useActiveNav(): NavKey | null {
   return null
 }
 
-function NavItems({ onNavigate, vertical = false }: { onNavigate?: () => void; vertical?: boolean }) {
+function NavItems() {
   const active = useActiveNav()
-  const base = cn(
-    'relative inline-flex items-center text-sm transition-colors hover:text-primary',
-    vertical ? 'h-12 w-full border-b border-border px-1 text-base' : 'h-full px-1',
-  )
-  const activeCls = vertical ? 'text-primary font-semibold' : 'text-primary font-semibold after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-primary'
+  const base = 'relative inline-flex h-full items-center px-1 text-sm transition-colors hover:text-primary'
+  const activeCls = 'text-primary font-semibold after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-primary'
   return (
     <>
-      <Link to="/" className={cn(base, active === 'inicio' && activeCls)} aria-current={active === 'inicio' ? 'page' : undefined} onClick={onNavigate}>
+      <Link to="/" className={cn(base, active === 'inicio' && activeCls)} aria-current={active === 'inicio' ? 'page' : undefined}>
         Início
       </Link>
       <Link
@@ -37,7 +33,7 @@ function NavItems({ onNavigate, vertical = false }: { onNavigate?: () => void; v
         hash="catalogo"
         className={cn(base, active === 'mercado' && activeCls)}
         aria-current={active === 'mercado' ? 'page' : undefined}
-        onClick={onNavigate}
+       
       >
         Mercado
       </Link>
@@ -138,42 +134,13 @@ export function Header() {
   const { user } = useSession()
   const location = useLocation()
   const [searching, setSearching] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
   const redirect = location.href
 
   return (
+    <TooltipProvider delayDuration={200}>
     <header className="container-page">
       <div className="flex h-[68px] items-center justify-between gap-4 border-b border-[#3f2319]">
         <div className="flex items-center gap-2">
-          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Abrir menu">
-                <Menu />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-[85vw] max-w-sm border-border bg-background">
-              <SheetHeader>
-                <SheetTitle className="text-left tracking-[0.2em]">KURIO</SheetTitle>
-                <SheetDescription className="sr-only">Navegação principal</SheetDescription>
-              </SheetHeader>
-              <nav aria-label="Principal (menu)" className="flex flex-col px-4">
-                <NavItems vertical onNavigate={() => setMenuOpen(false)} />
-                {user ? (
-                  <>
-                    <Link to="/perfil" className="flex h-12 items-center gap-2 border-b border-border" onClick={() => setMenuOpen(false)}>
-                      <User className="size-4" aria-hidden /> Meu perfil
-                    </Link>
-                    <Link to="/perfil/carteiras" className="flex h-12 items-center gap-2 border-b border-border" onClick={() => setMenuOpen(false)}>
-                      <Wallet className="size-4" aria-hidden /> Carteiras
-                    </Link>
-                    <Link to="/perfil/favoritos" className="flex h-12 items-center gap-2 border-b border-border" onClick={() => setMenuOpen(false)}>
-                      <Heart className="size-4" aria-hidden /> Lista de interesse
-                    </Link>
-                  </>
-                ) : null}
-              </nav>
-            </SheetContent>
-          </Sheet>
           <Link to="/" className="text-sm font-bold tracking-[0.2em]" aria-label="Kurio — página inicial">
             KURIO
           </Link>
@@ -205,5 +172,6 @@ export function Header() {
         </div>
       </div>
     </header>
+    </TooltipProvider>
   )
 }

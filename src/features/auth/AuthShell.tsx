@@ -2,14 +2,9 @@ import { Link, useNavigate } from '@tanstack/react-router'
 import { X } from 'lucide-react'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { notAvailable } from '@/components/states'
+import { safeRedirect } from '@/auth/redirect'
 import { cn } from '@/lib/utils'
 
-/** Só aceita destinos internos (evita open redirect). */
-export function safeRedirect(target: string | undefined) {
-  if (!target || !target.startsWith('/') || target.startsWith('//')) return '/'
-  if (target.startsWith('/entrar') || target.startsWith('/cadastro')) return '/'
-  return target
-}
 
 const GoogleIcon = () => (
   <svg aria-hidden viewBox="0 0 24 24" className="size-4">

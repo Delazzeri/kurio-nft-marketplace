@@ -4,16 +4,18 @@ import { MobileSearchBar } from '@/features/catalog/MobileSearchBar'
 import { Catalog } from '@/features/catalog/Catalog'
 import { Hero } from '@/features/catalog/Hero'
 import { Journal, PromoBanners } from '@/features/catalog/HomeExtras'
-import { featuredQuery, nftListQuery } from '@/features/catalog/queries'
-import { catalogSearchSchema, toApiQuery } from '@/features/catalog/search'
+import { parseCatalogSearch, toApiQuery } from '@/features/catalog/search'
 
 export const Route = createFileRoute('/')({
-  validateSearch: catalogSearchSchema,
+  validateSearch: parseCatalogSearch,
   loaderDeps: ({ search }) => search,
   // prefetch sem bloquear a navegação: skeletons aparecem enquanto a API responde
+  // (camada de dados importada sob demanda: não bloqueia a primeira pintura)
   loader: ({ context, deps }) => {
-    void context.queryClient.prefetchQuery(nftListQuery(toApiQuery(deps)))
-    void context.queryClient.prefetchQuery(featuredQuery)
+    void import('@/features/catalog/queries').then(({ featuredQuery, nftListQuery }) => {
+      void context.queryClient.prefetchQuery(nftListQuery(toApiQuery(deps)))
+      void context.queryClient.prefetchQuery(featuredQuery)
+    })
   },
   head: () => ({ meta: [{ title: 'Kurio — Marketplace de NFTs' }] }),
   component: HomePage,

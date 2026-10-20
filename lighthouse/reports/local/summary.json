@@ -1,0 +1,394 @@
+{
+  "environment": {
+    "date": "2026-10-20T19:29:43.682Z",
+    "url": "http://localhost:4174",
+    "lighthouse": "13.5.0",
+    "chrome": "Chrome/156.0.8078.4",
+    "node": "v24.14.0",
+    "os": "Windows_NT 10.0.26300 (x64)",
+    "cpu": "13th Gen Intel(R) Core(TM) i5-13420H",
+    "conditions": {
+      "mobile": "Padrão do Lighthouse: Moto G Power emulado, throttling simulado (4G lento, CPU 4x)",
+      "desktop": "desktop-config do Lighthouse: 1350x940, throttling simulado de rede cabeada, CPU 1x",
+      "mocks": "MSW ativo, cenário padrão (latência 150–450 ms), perfil de navegador limpo a cada execução"
+    }
+  },
+  "targets": {
+    "performance": 90,
+    "accessibility": 95,
+    "best-practices": 95,
+    "seo": 90
+  },
+  "summary": [
+    {
+      "page": "inicio",
+      "path": "/",
+      "profile": "mobile",
+      "median": {
+        "performance": 72,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 4482.965250000001,
+        "CLS": 0.02175086004179652,
+        "TBT": 233.49999999999977,
+        "FCP": 3567.594,
+        "SI": 3567.594
+      },
+      "runs": [
+        {
+          "performance": 75,
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 100
+        },
+        {
+          "performance": 72,
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 100
+        },
+        {
+          "performance": 71,
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 100
+        }
+      ]
+    },
+    {
+      "page": "inicio",
+      "path": "/",
+      "profile": "desktop",
+      "median": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 988.1083749999999,
+        "CLS": 0.001490957394578794,
+        "TBT": 7.5,
+        "FCP": 775.7437,
+        "SI": 775.7437
+      },
+      "runs": [
+        {
+          "performance": 98,
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 100
+        },
+        {
+          "performance": 98,
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 100
+        },
+        {
+          "performance": 98,
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 100
+        }
+      ]
+    },
+    {
+      "page": "detalhe",
+      "path": "/nft/emerald-ape-042",
+      "profile": "mobile",
+      "median": {
+        "performance": 79,
+        "accessibility": 99,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 3960.293275000001,
+        "CLS": 0,
+        "TBT": 127.64117499999952,
+        "FCP": 3413.6411750000016,
+        "SI": 3413.6411750000016
+      },
+      "runs": [
+        {
+          "performance": 77,
+          "accessibility": 99,
+          "best-practices": 100,
+          "seo": 100
+        },
+        {
+          "performance": 79,
+          "accessibility": 99,
+          "best-practices": 100,
+          "seo": 100
+        },
+        {
+          "performance": 79,
+          "accessibility": 99,
+          "best-practices": 100,
+          "seo": 100
+        }
+      ]
+    },
+    {
+      "page": "detalhe",
+      "path": "/nft/emerald-ape-042",
+      "profile": "desktop",
+      "median": {
+        "performance": 99,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 900.745375,
+        "CLS": 0.00536360388624905,
+        "TBT": 0,
+        "FCP": 743.2963,
+        "SI": 743.2963
+      },
+      "runs": [
+        {
+          "performance": 99,
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 100
+        },
+        {
+          "performance": 99,
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 100
+        },
+        {
+          "performance": 99,
+          "accessibility": 100,
+          "best-practices": 100,
+          "seo": 100
+        }
+      ]
+    }
+  ],
+  "results": [
+    {
+      "page": "inicio",
+      "profile": "mobile",
+      "run": 1,
+      "scores": {
+        "performance": 75,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 4482.74725,
+        "CLS": 0.02175086004179652,
+        "TBT": 151,
+        "FCP": 3540.3060000000005,
+        "SI": 3540.3060000000005
+      }
+    },
+    {
+      "page": "inicio",
+      "profile": "mobile",
+      "run": 2,
+      "scores": {
+        "performance": 72,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 4482.965250000001,
+        "CLS": 0.02175086004179652,
+        "TBT": 233.49999999999977,
+        "FCP": 3567.594,
+        "SI": 3567.594
+      }
+    },
+    {
+      "page": "inicio",
+      "profile": "mobile",
+      "run": 3,
+      "scores": {
+        "performance": 71,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 4620.101825,
+        "CLS": 0.02175086004179652,
+        "TBT": 242.63104999999996,
+        "FCP": 3639.5242,
+        "SI": 3639.5242
+      }
+    },
+    {
+      "page": "inicio",
+      "profile": "desktop",
+      "run": 1,
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 974.0310000000004,
+        "CLS": 0.001490957394578794,
+        "TBT": 7.5,
+        "FCP": 768.5186000000001,
+        "SI": 768.5186000000001
+      }
+    },
+    {
+      "page": "inicio",
+      "profile": "desktop",
+      "run": 2,
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 1016.8697499999998,
+        "CLS": 0.001490957394578794,
+        "TBT": 3.5,
+        "FCP": 775.7437,
+        "SI": 775.7437
+      }
+    },
+    {
+      "page": "inicio",
+      "profile": "desktop",
+      "run": 3,
+      "scores": {
+        "performance": 98,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 988.1083749999999,
+        "CLS": 0.001490957394578794,
+        "TBT": 13.5,
+        "FCP": 797.582875,
+        "SI": 797.582875
+      }
+    },
+    {
+      "page": "detalhe",
+      "profile": "mobile",
+      "run": 1,
+      "scores": {
+        "performance": 77,
+        "accessibility": 99,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 4136.278524999999,
+        "CLS": 0,
+        "TBT": 149.99999999999977,
+        "FCP": 3511.995424999999,
+        "SI": 3511.995424999999
+      }
+    },
+    {
+      "page": "detalhe",
+      "profile": "mobile",
+      "run": 2,
+      "scores": {
+        "performance": 79,
+        "accessibility": 99,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 3960.293275000001,
+        "CLS": 0,
+        "TBT": 127.64117499999952,
+        "FCP": 3413.6411750000016,
+        "SI": 3413.6411750000016
+      }
+    },
+    {
+      "page": "detalhe",
+      "profile": "mobile",
+      "run": 3,
+      "scores": {
+        "performance": 79,
+        "accessibility": 99,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 3928.7074749999992,
+        "CLS": 0,
+        "TBT": 118.58657500000004,
+        "FCP": 3410.5865749999994,
+        "SI": 3410.5865749999994
+      }
+    },
+    {
+      "page": "detalhe",
+      "profile": "desktop",
+      "run": 1,
+      "scores": {
+        "performance": 99,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 894.057,
+        "CLS": 0.00536360388624905,
+        "TBT": 0,
+        "FCP": 740.9456,
+        "SI": 740.9456
+      }
+    },
+    {
+      "page": "detalhe",
+      "profile": "desktop",
+      "run": 2,
+      "scores": {
+        "performance": 99,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 900.745375,
+        "CLS": 0.00536360388624905,
+        "TBT": 0,
+        "FCP": 743.2963,
+        "SI": 743.2963
+      }
+    },
+    {
+      "page": "detalhe",
+      "profile": "desktop",
+      "run": 3,
+      "scores": {
+        "performance": 99,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100
+      },
+      "metrics": {
+        "LCP": 903.5616000000001,
+        "CLS": 0.00536360388624905,
+        "TBT": 0,
+        "FCP": 750.0184000000002,
+        "SI": 750.0184000000002
+      }
+    }
+  ]
+}

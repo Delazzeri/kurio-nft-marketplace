@@ -72,6 +72,7 @@ Erros de rede/timeout são normalizados no cliente como `NETWORK_ERROR` / `TIMEO
 - `category`/`network` repetidos = filtros combinados (E entre grupos, OU dentro do grupo). `sort`: `recent | price-asc | price-desc | popular | name`. `tab`: `all | new | trending`.
 - **Facetas** contam respeitando os demais filtros (busca facetada). `appliedQuery` ecoa o que a API aplicou.
 - Todo NFT tem `version` monotônica (ordenação de eventos). Preços são **strings decimais**.
+- `network` é a rede de cunhagem e `networks` lista todas as redes em que o NFT está listado (NFTs **multichain**). O filtro por rede inclui o NFT se qualquer uma de suas redes corresponder.
 
 ### Favoritos (autenticado)
 `GET /me/favorites` → `{ nftIds }` · `PUT /me/favorites/:nftId` · `DELETE /me/favorites/:nftId`
@@ -181,7 +182,7 @@ Busca, filtros, faixa de preço, aba, ordenação e página vivem na URL (`?q=&c
 
 ## 9. Mocking (MSW)
 
-- `mocks/db.ts`: estado completo (usuários, sessões, NFTs, favoritos, carrinhos, cotações, pedidos, idempotência, carteiras) persistido em `localStorage` (`kurio:mock:db:v1`); `reset()` restaura o seed.
+- `mocks/db.ts`: estado completo (usuários, sessões, NFTs, favoritos, carrinhos, cotações, pedidos, idempotência, carteiras) persistido em `localStorage` (`kurio:mock:db:v2`); o catálogo é reconstruído do seed e só as alterações (preço, estoque, versão) são persistidas como *patches*; `reset()` restaura o seed.
 - `mocks/http.ts` (`withNetwork`): aplica a latência e as falhas do cenário a todo handler (erro de rede, timeout, HTTP 4xx/5xx, falha só nas N primeiras chamadas).
 - `mocks/control.ts`: API de controle (`window.__kurioMock`) para o painel e os testes — altera dados (gerando eventos), duplica/envelhece eventos, derruba o socket, expira sessões.
 - O mock é carregado **antes** do primeiro render e está no build de demonstração (Vercel).
@@ -220,10 +221,12 @@ Busca, filtros, faixa de preço, aba, ordenação e página vivem na URL (`?q=&c
 | Lista de interesse | Implementada como `/perfil/favoritos` (o enunciado exige favoritos persistentes) |
 | Avaliações | A aba mostra nota/quantidade; a leitura de avaliações individuais está fora do escopo |
 | Recibo | Fiel ao frame; o botão "Ver no Etherscan" aponta para um hash simulado e informa que é simulado |
-| Ícones | Lucide no lugar do conjunto Iconly do Figma (equivalentes visuais, tree-shaking) |
+| Ícones | Lucide no lugar do conjunto Iconly do Figma (equivalentes visuais, tree-shaking); a navegação inferior mobile usa ícones sólidos próprios e o recorte do frame desenhado em SVG |
+| Números do catálogo | O Figma mostra 239 NFTs somando as coleções (33+12+65+39+23+17+19+13+18) e 283 somando as redes (119+78+86). Para respeitar os dois conjuntos, o seed tem 239 NFTs e 44 deles são **multichain** (listados em duas redes); faixa de preço 0,02–12,30 ETH como no slider. Os NFTs além dos 36 desenhados são gerados de forma determinística (PRNG com seed fixa) |
+| Paginação | Com 27 páginas, a paginação é compacta (`1 2 3 4 … 27 >`), mantendo o visual do Figma na primeira página |
 
 ### Assets
-- As 4 ilustrações foram exportadas do Figma (originais em `docs/assets/nfts/`, 500×500) e convertidas para WebP (500 px e 400 px para os cards via `srcset`). Os 36 NFTs do seed reutilizam essas 4 artes (o arquivo do Figma não traz mais artes).
+- As 4 ilustrações foram exportadas do Figma (originais em `docs/assets/nfts/`, 500×500) e convertidas para WebP (500 px e 400 px para os cards via `srcset`). Os 239 NFTs do seed reutilizam essas 4 artes (o arquivo do Figma não traz mais artes).
 - Ícone "THANK YOU" do recibo redesenhado em SVG inline.
 - Fonte: Roboto Mono (auto-hospedada), a mais próxima da tipografia monoespaçada do layout.
 - Frames de referência exportados em `docs/figma/`.

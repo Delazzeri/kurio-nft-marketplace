@@ -1,19 +1,20 @@
 import { Link, useNavigate } from '@tanstack/react-router'
-import { ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react'
+import { ChevronDown, ChevronLeft, ChevronRight, SlidersHorizontal, X } from 'lucide-react'
 import { lazy, Suspense, useEffect } from 'react'
 import { catalogTabs, categories, networks, sortOptions } from '@/api/contracts'
 import { EmptyState, ErrorState } from '@/components/states'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { announce } from '@/lib/announce'
+import { useIsWide } from '@/lib/use-media'
 import { cn } from '@/lib/utils'
-import { Filters } from './Filters'
 import { NftCard, NftCardSkeleton } from './NftCard'
 import { useNftList } from './queries'
 import { PAGE_SIZE, toApiQuery, type CatalogSearch } from './search'
 import { Spotlight } from './Spotlight'
 
 const FiltersDrawer = lazy(() => import('./FiltersDrawer'))
+// filtros (com o slider do Radix) carregados sob demanda: no mobile só quando o drawer abre
+const Filters = lazy(() => import('./Filters').then((m) => ({ default: m.Filters })))
 
 export function Catalog({
   search,
@@ -58,25 +59,34 @@ export function Catalog({
       : []),
   ]
 
-  const filters = <Filters facets={data?.facets} search={search} onChange={update} />
+  const isWide = useIsWide()
+  const filters = (
+    <Suspense fallback={<FiltersSkeleton />}>
+      <Filters facets={data?.facets} search={search} onChange={update} />
+    </Suspense>
+  )
 
   const sortControl = (id: string) => (
     <>
       <label htmlFor={id} className="text-sm whitespace-nowrap">
         Ordenar por:
       </label>
-      <Select value={search.sort ?? 'recent'} onValueChange={(v) => update({ sort: v === 'recent' ? undefined : (v as CatalogSearch['sort']) })}>
-        <SelectTrigger id={id} className="h-8 border-0 px-1 text-sm max-md:border max-md:px-3">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
+      {/* select nativo: acessível por padrão, leve e com o seletor do sistema no mobile */}
+      <span className="relative inline-flex items-center">
+        <select
+          id={id}
+          value={search.sort ?? 'recent'}
+          onChange={(e) => update({ sort: e.target.value === 'recent' ? undefined : (e.target.value as CatalogSearch['sort']) })}
+          className="h-8 cursor-pointer appearance-none rounded-sm bg-transparent pr-6 pl-1 text-sm max-md:h-10 max-md:w-full max-md:border max-md:border-border max-md:pl-3"
+        >
           {sortOptions.map((o) => (
-            <SelectItem key={o.id} value={o.id}>
+            <option key={o.id} value={o.id} className="bg-card text-foreground">
               {o.label}
-            </SelectItem>
+            </option>
           ))}
-        </SelectContent>
-      </Select>
+        </select>
+        <ChevronDown aria-hidden className="pointer-events-none absolute right-1 size-4" />
+      </span>
     </>
   )
 
@@ -86,10 +96,12 @@ export function Catalog({
         Catálogo de NFTs
       </h2>
       <div className="grid gap-8 lg:grid-cols-[310px_1fr]">
-        <aside className="hidden flex-col gap-10 lg:flex" aria-label="Filtros">
-          <div className="bg-card px-6 py-6">{filters}</div>
-          <Spotlight />
-        </aside>
+        {isWide && (
+          <aside className="flex flex-col gap-10" aria-label="Filtros">
+            <div className="bg-card px-6 py-6">{filters}</div>
+            <Spotlight />
+          </aside>
+        )}
 
         <div className="flex min-w-0 flex-col gap-6">
           <div className="flex flex-wrap items-center justify-between gap-3 md:border-b md:border-border">
@@ -260,5 +272,15 @@ function Pagination({ page, totalPages, search }: { page: number; totalPages: nu
         )}
       </ul>
     </nav>
+  )
+}
+
+function FiltersSkeleton() {
+  return (
+    <div className="flex flex-col gap-3" aria-hidden>
+      {Array.from({ length: 12 }, (_, i) => (
+        <div key={i} className="skeleton h-6" />
+      ))}
+    </div>
   )
 }

@@ -35,8 +35,7 @@ test.describe('Catálogo', () => {
     await expect(filters.getByRole('button', { name: /^Música/ })).toHaveAttribute('aria-pressed', 'true')
 
     // ordenação
-    await page.getByRole('combobox', { name: 'Ordenar por:' }).click()
-    await page.getByRole('option', { name: 'Menor preço' }).click()
+    await page.getByRole('combobox', { name: 'Ordenar por:' }).selectOption({ label: 'Menor preço' })
     await expect(page).toHaveURL(/sort=price-asc/)
     if (app.isMobile) await page.getByRole('dialog', { name: 'Filtros' }).getByRole('button', { name: 'Fechar' }).click()
 

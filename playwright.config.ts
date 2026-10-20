@@ -1,7 +1,9 @@
 import { defineConfig, devices } from '@playwright/test'
 
 const PORT = 4173
-const BASE_URL = `http://localhost:${PORT}`
+/** E2E_BASE_URL permite rodar a suíte contra o deploy (ex.: Vercel) sem subir servidor local */
+const EXTERNAL_URL = process.env.E2E_BASE_URL
+const BASE_URL = EXTERNAL_URL ?? `http://localhost:${PORT}`
 
 /**
  * E2E sobre o build de produção servido pelo `vite preview`, com a camada MSW ativa
@@ -39,10 +41,12 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 },
     },
   ],
-  webServer: {
-    command: `pnpm build && pnpm preview --port ${PORT} --strictPort`,
-    url: BASE_URL,
-    reuseExistingServer: !process.env.CI,
-    timeout: 180_000,
-  },
+  webServer: EXTERNAL_URL
+    ? undefined
+    : {
+        command: `pnpm build && pnpm preview --port ${PORT} --strictPort`,
+        url: BASE_URL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 180_000,
+      },
 })

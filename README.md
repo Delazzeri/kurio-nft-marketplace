@@ -44,6 +44,7 @@ pnpm dev            # http://localhost:5173 — com mocks (MSW) ativos
 | `pnpm lint` | ESLint |
 | `pnpm test:e2e` | Playwright (Chromium desktop 1440px + mobile 390px) sobre o build de produção |
 | `pnpm test:e2e:update` | Regenera as baselines de regressão visual |
+| `E2E_BASE_URL=https://kurio-nft-marketplace-five.vercel.app pnpm test:e2e` | Roda a suíte contra o deploy publicado (sem servidor local) |
 | `pnpm test:report` | Abre o relatório HTML do Playwright (traces das falhas inclusos) |
 | `pnpm lighthouse` | Build + auditoria Lighthouse (3 execuções por página/perfil) |
 

@@ -1,6 +1,6 @@
 # Lighthouse — resumo (mediana de 3 execuções)
 
-- Data: 2026-10-20T17:41:18.156Z
+- Data: 2026-10-20T18:06:30.014Z
 - URL base: http://localhost:4174
 - Lighthouse 13.5.0 · Chrome/156.0.8078.4 · Node v24.14.0
 - SO: Windows_NT 10.0.26300 (x64) · CPU: 13th Gen Intel(R) Core(TM) i5-13420H
@@ -8,9 +8,9 @@
 
 | Página | Perfil | Performance | Accessibility | Best Practices | SEO | LCP | CLS | TBT |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| inicio | mobile | **74** ⚠️ | 100 | 100 | 100 | 4491 ms | 0.022 | 269 ms |
-| inicio | desktop | 98 | 100 | 100 | 100 | 1005 ms | 0.002 | 3 ms |
-| detalhe | mobile | **71** ⚠️ | 99 | 100 | 100 | 4577 ms | 0.000 | 340 ms |
-| detalhe | desktop | **87** ⚠️ | 100 | 100 | 100 | 1003 ms | 0.225 | 1 ms |
+| inicio | mobile | **71** ⚠️ | 100 | 100 | 100 | 4075 ms | 0.022 | 366 ms |
+| inicio | desktop | 99 | 100 | 100 | 100 | 865 ms | 0.002 | 11 ms |
+| detalhe | mobile | **79** ⚠️ | 99 | 100 | 100 | 3641 ms | 0.000 | 261 ms |
+| detalhe | desktop | 99 | 100 | 100 | 100 | 827 ms | 0.006 | 0 ms |
 
 Metas: Performance ≥ 90, Accessibility ≥ 95, Best Practices ≥ 95, SEO ≥ 90.

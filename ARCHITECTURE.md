@@ -234,3 +234,32 @@ Busca, filtros, faixa de preço, aba, ordenação e página vivem na URL (`?q=&c
 - O preço do catálogo (`price`) é o da edição padrão (1/50); as demais edições têm multiplicadores fixos.
 - Reviews individuais, login social, recuperação de senha e páginas editoriais estão fora do escopo.
 - Baselines visuais são específicas do SO (renderização de fontes); geradas em Windows.
+
+## 13. Performance e Lighthouse
+
+Auditoria versionada em `lighthouse/` (`pnpm lighthouse`): build otimizado servido por `vite preview`, mocks ativos no **cenário padrão**, perfil de navegador limpo por execução, **3 medições por página/perfil** e mediana por categoria. Relatórios HTML/JSON de cada execução, versões e condições em [`lighthouse/reports/`](./lighthouse/reports/summary.md).
+
+| Página | Perfil | Performance | Accessibility | Best Practices | SEO | LCP | CLS | TBT |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Início | mobile | 71 | 100 | 100 | 100 | 4,1 s | 0,022 | 366 ms |
+| Início | desktop | 99 | 100 | 100 | 100 | 0,87 s | 0,002 | 11 ms |
+| Detalhe | mobile | 79 | 99 | 100 | 100 | 3,6 s | 0,000 | 261 ms |
+| Detalhe | desktop | 99 | 100 | 100 | 100 | 0,83 s | 0,006 | 0 ms |
+
+Ambiente: Lighthouse 13.5.0, Chromium 156 (Playwright), Node 24, Windows 11, i5-13420H. Mobile = Moto G Power emulado com throttling simulado (4G lento, CPU 4×); desktop = `desktop-config`.
+
+### Otimizações aplicadas (sem simplificar a entrega)
+| Mudança | Efeito medido |
+| --- | --- |
+| Render imediato do app; REST/Socket.IO aguardam `mocksReady` | o shell e os skeletons não esperam o MSW |
+| `socket.io-client` importado sob demanda | fora do bundle crítico |
+| `modulepreload` dos chunks do App e dos mocks no HTML | downloads em paralelo com o entry |
+| Shim de `tldts` (lista de sufixos públicos usada pelo cookie store do MSW) | chunk dos mocks 366 KB → 103 KB (gzip 142 → 34 KB); LCP mobile −0,6 a −0,8 s |
+| `<main>` com altura mínima de uma tela e `scrollbar-gutter: stable` | CLS do detalhe desktop 0,225 → 0,006 (Performance 87 → 99) |
+| Imagens WebP 400/500 px com `srcset`, dimensões fixas, `fetchpriority` nos 3 primeiros cards; fonte auto-hospedada com `font-display: swap` | sem CLS de imagem/fonte |
+
+### Por que o mobile fica abaixo de 90
+- **Causa principal — a API roda no navegador.** Antes de qualquer dado existir, o dispositivo precisa baixar e executar o runtime do MSW, registrar o Service Worker e só então responder ao catálogo; a imagem do primeiro card (elemento de LCP) só é pedida depois disso. Com um backend real, esse código não existiria no cliente e o LCP passaria a depender só da latência da API.
+- **Custo de JavaScript sob CPU 4×.** A thread principal soma ~2,5 s (≈1,3 s de avaliação de script) para React, Router, Query, zod (validação de contratos) e a camada de mocks. Isso explica o FCP de ~3,4 s e o TBT de 260–370 ms. No desktop (CPU 1×) as mesmas páginas ficam em 99.
+- **Caminhos avaliados e não adotados:** SSR/pré-renderização (fora do escopo de uma SPA com dados simulados no navegador) e um *app shell* estático no `index.html` (risco de CLS ao trocar pelo React e de divergência visual). Remover os mocks ou trocar os dados por conteúdo estático na auditoria foi descartado por ser uma simplificação exclusiva para a pontuação.
+- Accessibility, Best Practices e SEO atingem as metas em todas as páginas e perfis.

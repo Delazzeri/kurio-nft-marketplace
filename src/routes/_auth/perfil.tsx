@@ -29,12 +29,12 @@ function ProfileLayout() {
   return (
     <>
     <MobileTopBar title="Meu perfil" />
-    <div className="container-page grid gap-7 md:grid-cols-[310px_1fr] md:pt-8">
-      <nav aria-labelledby="perfil-menu" className="h-fit min-w-0 bg-card max-md:rounded-xl md:pt-6">
-        <h2 id="perfil-menu" className="px-3 pb-2 text-lg font-bold max-md:sr-only">
+    <div className="container-page grid gap-7 md:pt-8 lg:grid-cols-[310px_1fr]">
+      <nav aria-labelledby="perfil-menu" className="h-fit min-w-0 bg-card max-lg:rounded-xl lg:pt-6">
+        <h2 id="perfil-menu" className="px-3 pb-2 text-lg font-bold max-lg:sr-only">
           Meu perfil
         </h2>
-        <ul className="flex overflow-x-auto md:flex-col">
+        <ul className="flex overflow-x-auto lg:flex-col">
           <li>
             <Link to="/perfil" activeOptions={{ exact: true }} className={item} activeProps={{ className: activeItem, 'aria-current': 'page' }}>
               <User aria-hidden className="size-4" /> Dados do perfil
@@ -54,7 +54,7 @@ function ProfileLayout() {
           <Disabled icon={LineChart} label="Ofertas" />
           <Disabled icon={Download} label="Arquivos baixados" />
           <Disabled icon={AlertTriangle} label="Suporte" />
-          <li className="md:border-t md:border-border">
+          <li className="lg:border-t lg:border-border">
             <button
               type="button"
               className={cn(item, 'font-semibold')}

@@ -124,7 +124,7 @@ Ids de NFT úteis: `emerald-ape-042`, `sage-nomad-009`, `ivory-baron-088`, `gold
 
 ```bash
 pnpm exec playwright install chromium   # primeira vez
-pnpm test:e2e                           # 96 testes (desktop + mobile), ~2 min
+pnpm test:e2e                           # ~100 testes (desktop + mobile), ~2 min
 pnpm test:report
 ```
 
@@ -145,6 +145,7 @@ Cobertura (um arquivo por cenário do enunciado, em `e2e/`):
 | 11 | Teclado, foco de diálogos, validação + axe | `a11y.spec.ts` |
 | 12 | Skeletons, feedback de falha e nova tentativa | `loading-errors.spec.ts` |
 | — | Regressão visual (início, detalhe, carrinho, pagamento × desktop/mobile) | `visual.spec.ts` |
+| — | Sem overflow horizontal em 390, 768 e 1440 px | `responsive.spec.ts` |
 
 - Cada teste parte de um **contexto novo** (localStorage vazio → mock volta ao seed) e define o cenário antes do carregamento.
 - Eventos em tempo real são disparados pela **API de controle do mock**, que altera o banco simulado; o evento chega pelo `socket.io-client` real. REST passa pelos handlers MSW.

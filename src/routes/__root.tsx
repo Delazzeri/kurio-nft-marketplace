@@ -48,7 +48,8 @@ function RootLayout() {
       <div className="max-md:hidden">
         <Header />
       </div>
-      <main id="conteudo" ref={mainRef} tabIndex={-1} className="outline-none">
+      {/* altura mínima de uma tela: o footer não aparece (e não é empurrado) enquanto o conteúdo carrega — evita CLS */}
+      <main id="conteudo" ref={mainRef} tabIndex={-1} className="min-h-dvh outline-none">
         <Outlet />
       </main>
       <div className={authScreen ? 'max-md:hidden' : undefined}>

@@ -59,7 +59,10 @@ export function Hero() {
               )}
             </div>
           </div>
-          <Dots items={items} index={index} onSelect={setIndex} className="relative mt-1 justify-center" />
+          {/* altura reservada: os indicadores chegam com os dados sem deslocar o catálogo (CLS) */}
+          <div className="relative mt-1 h-6">
+            <Dots items={items} index={index} onSelect={setIndex} className="justify-center" />
+          </div>
         </div>
       </section>
     )

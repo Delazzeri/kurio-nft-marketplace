@@ -34,11 +34,35 @@ function preloadDynamicEntries(entries: string[]): Plugin {
   }
 }
 
+/**
+ * Embute o CSS (≈15 KB gzip) no HTML: a primeira pintura não espera uma requisição extra
+ * bloqueante. As fontes continuam como arquivos referenciados pelo CSS.
+ */
+function inlineCss(): Plugin {
+  return {
+    name: 'kurio:inline-css',
+    apply: 'build',
+    enforce: 'post',
+    generateBundle(_options, bundle) {
+      const html = Object.values(bundle).find((f) => f.type === 'asset' && f.fileName === 'index.html')
+      if (!html || html.type !== 'asset') return
+      let source = String(html.source)
+      for (const file of Object.values(bundle)) {
+        if (file.type !== 'asset' || !file.fileName.endsWith('.css')) continue
+        const tag = new RegExp(`<link rel="stylesheet"[^>]*href="/${file.fileName}"[^>]*>`)
+        if (tag.test(source)) source = source.replace(tag, () => `<style>${String(file.source)}</style>`)
+      }
+      html.source = source
+    },
+  }
+}
+
 export default defineConfig({
   plugins: [
     tanstackRouter({ target: 'react', autoCodeSplitting: true }),
     react(),
     tailwindcss(),
+    inlineCss(),
     preloadDynamicEntries(['src/app/App.tsx', 'src/api/endpoints.ts', 'src/api/contracts.ts', 'src/features/catalog/queries.ts', 'mocks/browser.ts']),
   ],
   resolve: {

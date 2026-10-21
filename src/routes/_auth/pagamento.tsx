@@ -41,7 +41,15 @@ const short = (a: string) => (a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}
 
 /** Impressão digital dos valores que o usuário revisou. */
 function fingerprint(q: Quote) {
-  return JSON.stringify([q.subtotal, q.discount, q.networkFee, q.total, q.items.map((i) => [i.nftId, i.editionId, i.quantity, i.unitPrice])])
+  return JSON.stringify([
+    q.subtotal,
+    q.discount,
+    q.networkFee,
+    q.total,
+    q.items.map((i) => [i.nftId, i.editionId, i.quantity, i.unitPrice]),
+    // disponibilidade também conta: um item que esgotou exige nova revisão mesmo sem mudar preço
+    q.blockingIssues.map((b) => [b.cartItemId, b.code]),
+  ])
 }
 
 function CheckoutPage() {
@@ -116,6 +124,8 @@ function CheckoutPage() {
   const current = quote.data
   const changed = !!review && !!current && fingerprint(review) !== fingerprint(current)
   const blocked = !!current && current.blockingIssues.length > 0
+  /** itens indisponíveis na cotação revisada: não há o que confirmar até ajustar o carrinho */
+  const reviewBlocked = !!review && review.blockingIssues.length > 0
 
   useEffect(() => {
     if (changed && reviewOpen) announce('Os valores do pedido mudaram. Revise e confirme novamente.', 'assertive')
@@ -136,7 +146,7 @@ function CheckoutPage() {
   )
 
   const confirm = () => {
-    if (!review || !wallet || !session || changed || submit.isPending) return
+    if (!review || !wallet || !session || changed || reviewBlocked || submit.isPending) return
     const values = checkoutSchema.parse(form.getValues())
     setSubmitError(null)
     submit.mutate(
@@ -459,6 +469,21 @@ function CheckoutPage() {
                   </Button>
                 </div>
               )}
+              {!changed && reviewBlocked && (
+                <div role="alert" className="flex flex-col gap-2 rounded-sm border border-destructive p-3 text-destructive">
+                  <p className="flex items-center gap-2 font-semibold">
+                    <AlertTriangle aria-hidden className="size-4" /> Há itens indisponíveis no pedido.
+                  </p>
+                  <ul className="list-disc pl-5">
+                    {review.blockingIssues.map((b) => (
+                      <li key={b.cartItemId}>{b.message}</li>
+                    ))}
+                  </ul>
+                  <Link to="/carrinho" className="w-fit font-semibold underline">
+                    Ajustar carrinho
+                  </Link>
+                </div>
+              )}
               <ul className="flex flex-col gap-2">
                 {review.items.map((i) => (
                   <li key={i.cartItemId} className="flex justify-between gap-3">
@@ -480,7 +505,7 @@ function CheckoutPage() {
             <Button variant="ghost" onClick={() => setReviewOpen(false)} disabled={submit.isPending}>
               Voltar
             </Button>
-            <Button onClick={confirm} disabled={changed || submit.isPending || quote.isFetching} aria-describedby={changed ? undefined : undefined}>
+            <Button onClick={confirm} disabled={changed || reviewBlocked || submit.isPending || quote.isFetching}>
               {submit.isPending ? (
                 <>
                   <Loader2 aria-hidden className="animate-spin" /> Enviando pedido…

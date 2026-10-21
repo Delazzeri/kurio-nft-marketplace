@@ -1,6 +1,6 @@
 # Arquitetura — Kurio
 
-Este documento descreve contratos, fluxo de dados, políticas de sessão/cache, reconciliação REST ↔ Socket.IO, decisões de UX, limitações e desvios do Figma.
+Este documento descreve contratos, fluxo de dados, políticas de sessão/cache, reconciliação REST ↔ Socket.IO, decisões de UX, limitações e desvios do Figma. Setup, comandos, credenciais e cenários estão no [README](./README.md).
 
 ## 1. Visão geral
 
@@ -143,7 +143,8 @@ Envelope comum: `{ eventId, type, resource: { type, id }, version, occurredAt, d
 - **REST é a fonte da verdade**; eventos são sinais para atualizar/invalidar.
 - **Reconexão**: no `connect` após uma queda, invalidamos catálogo, carrinho, cotação e pedidos — eventos perdidos durante a queda são recuperados por consulta.
 - **Pedido pendente**: além do evento, a página do pedido faz *polling* a cada 4 s enquanto `pending` (fallback). Após refresh, o pedido é recuperado por `GET /orders/:id` e o checkout mostra "pedido em processamento" via `GET /orders?status=pending`. Nenhuma nova compra é criada.
-- **Checkout**: o usuário revisa uma cotação; se outra cotação chega (evento → invalidação) com valores diferentes, o diálogo mostra "valores mudaram" (antes → depois) e **bloqueia a confirmação** até o usuário revisar. Se a mudança acontece no servidor durante o envio, o 409 `QUOTE_STALE` produz o mesmo fluxo.
+- **Checkout**: o usuário revisa uma cotação; se outra cotação chega (evento → invalidação) com valores diferentes, o diálogo mostra "valores mudaram" (antes → depois) e **bloqueia a confirmação** até o usuário revisar. Se a mudança acontece no servidor durante o envio, o 409 `QUOTE_STALE` produz o mesmo fluxo. A comparação considera preços, quantidades, taxas **e disponibilidade**: se a nova cotação traz itens esgotados, o diálogo lista os itens indisponíveis, oferece "Ajustar carrinho" e mantém a confirmação desabilitada.
+- **Conexão em tempo real**: aberta depois do evento `load` (o tempo real não compete com a primeira tela); até lá, os dados vêm do REST.
 
 ## 5. Política de sessão
 
@@ -178,14 +179,14 @@ Envelope comum: `{ eventId, type, resource: { type, id }, version, occurredAt, d
 
 ## 8. URL como estado
 
-Busca, filtros, faixa de preço, aba, ordenação e página vivem na URL (`?q=&cat=musica,arte-3d&net=ethereum&min=&max=&tab=&sort=&page=`), validados por zod (valores inválidos são descartados sem quebrar a página). Mudança de filtro reinicia a paginação. A serialização foi customizada (listas separadas por vírgula) para URLs legíveis — o padrão do TanStack Router é JSON.
+Busca, filtros, faixa de preço, aba, ordenação e página vivem na URL (`?q=&cat=musica,arte-3d&net=ethereum&min=&max=&tab=&sort=&page=`), validados na resolução da rota por um parser leve (sem zod, para não pesar a primeira pintura); valores inválidos são descartados sem quebrar a página. Mudança de filtro reinicia a paginação. A serialização foi customizada (listas separadas por vírgula) para URLs legíveis — o padrão do TanStack Router é JSON.
 
 ## 9. Mocking (MSW)
 
 - `mocks/db.ts`: estado completo (usuários, sessões, NFTs, favoritos, carrinhos, cotações, pedidos, idempotência, carteiras) persistido em `localStorage` (`kurio:mock:db:v2`); o catálogo é reconstruído do seed e só as alterações (preço, estoque, versão) são persistidas como *patches*; `reset()` restaura o seed.
 - `mocks/http.ts` (`withNetwork`): aplica a latência e as falhas do cenário a todo handler (erro de rede, timeout, HTTP 4xx/5xx, falha só nas N primeiras chamadas).
 - `mocks/control.ts`: API de controle (`window.__kurioMock`) para o painel e os testes — altera dados (gerando eventos), duplica/envelhece eventos, derruba o socket, expira sessões.
-- O mock é carregado **antes** do primeiro render e está no build de demonstração (Vercel).
+- O mock inicia **em paralelo** com o primeiro render: o shell e os skeletons aparecem na hora e toda requisição REST aguarda a promessa `mocksReady` (interceptor do Axios), assim nenhuma chamada escapa do MSW. Está ativo no build de demonstração (Vercel).
 
 ### Transporte Socket.IO no ambiente de mocks — e limitações
 - `ws.link('wss://realtime.kurio.mock/*')` intercepta o `WebSocket` do navegador; `@mswjs/socket.io-binding` faz o encode/decode dos protocolos engine.io/socket.io. O app usa o `socket.io-client` real.
@@ -238,7 +239,17 @@ Busca, filtros, faixa de preço, aba, ordenação e página vivem na URL (`?q=&c
 - Reviews individuais, login social, recuperação de senha e páginas editoriais estão fora do escopo.
 - Baselines visuais são específicas do SO (renderização de fontes); geradas em Windows.
 
-## 13. Performance e Lighthouse
+## 13. Estratégia de testes (Playwright)
+
+- **114 testes** em 14 arquivos, rodando no build de produção (`vite preview`) com o MSW ativo, em Chromium desktop (1440 px) e mobile (390 px). Também rodam contra o deploy com `E2E_BASE_URL`.
+- **Isolamento**: cada teste usa um contexto novo (localStorage vazio → o banco do mock volta ao seed) e define o cenário antes do carregamento da página.
+- **Controle de tempo, latência e eventos**: latência e falhas pelos cenários do mock (`instantaneo`, `lento`, `latencia-variavel`…); relógio controlado com `page.clock` nos casos sensíveis a tempo (expiração de sessão durante o checkout, liquidação de pedido pendente), já que o mock usa `Date.now()` e timers da página; eventos disparados pela API de controle do mock, chegando pelo `socket.io-client` real.
+- **Verificações pela interface e pelo resultado**: a UI é conferida por papéis/rótulos acessíveis; resultados de operação são conferidos no estado do mock (ex.: exatamente 1 pedido após cliques repetidos ou timeout) e nas respostas da API (ex.: a grade mostra exatamente o que `/api/nfts` retorna para os mesmos parâmetros).
+- **Regressão visual** de início, detalhe, carrinho e pagamento × desktop/mobile, com dados determinísticos; baselines por plataforma.
+- **Acessibilidade** com axe-core nas páginas principais.
+- **Artefatos**: relatório HTML de uma execução completa versionado em [`docs/playwright-report/`](./docs/playwright-report/index.html); em falhas, trace, vídeo e screenshot ficam em `test-results/` (`trace: retain-on-failure`).
+
+## 14. Performance e Lighthouse
 
 Auditoria versionada em `lighthouse/` — build otimizado, mocks ativos no **cenário padrão**, perfil de navegador limpo por execução, **3 medições por página/perfil** e mediana por categoria. Dois ambientes:
 

@@ -6,6 +6,23 @@ Implementação do desafio frontend da Jungle Gaming: um marketplace de NFTs em 
 - **Repositório:** https://github.com/Delazzeri/kurio-nft-marketplace
 - **Arquitetura, contratos e decisões:** [ARCHITECTURE.md](./ARCHITECTURE.md)
 - **Auditoria Lighthouse:** [produção (Vercel)](./lighthouse/reports/producao/summary.md) · [local](./lighthouse/reports/local/summary.md)
+- **Relatório dos testes (Playwright):** [docs/playwright-report](./docs/playwright-report/index.html)
+
+## Visão geral da entrega
+
+- **Todas as telas do Figma**, desktop e mobile: início/catálogo, detalhe, carrinho, pagamento, confirmação, login, cadastro, perfil e carteiras (perfil, carteiras e confirmação também adaptados ao mobile).
+- **Catálogo com 239 NFTs** e as mesmas contagens do Figma por coleção e rede; busca, filtros combináveis, ordenação e paginação na URL.
+- **Compra completa** com carrinho persistente (inclusive do visitante), cupom, cotação revalidada, conexão de carteira simulada, pedido **idempotente** e recibo imutável.
+- **Tempo real** com Socket.IO (`nft.updated`, `order.updated`): deduplicação, versões, isolamento por usuário e reconciliação com o REST após reconexão.
+- **16 cenários de mock** determinísticos (lentidão, offline, 4xx/5xx, timeout, sessão expirada, preço alterado, edição esgotada, pagamento recusado…) selecionáveis pelo painel "Mock", pela URL ou pelo console.
+- **114 testes Playwright** (os 12 cenários do enunciado + regressão visual, acessibilidade e responsividade), com relógio controlado nos casos sensíveis a tempo.
+
+| Lighthouse (produção, mediana de 3) | Performance | Accessibility | Best Practices | SEO |
+| --- | ---: | ---: | ---: | ---: |
+| Início — desktop / mobile | 99 / 89 | 100 / 100 | 100 / 100 | 100 / 100 |
+| Detalhe — desktop / mobile | 100 / 87 | 100 / 99 | 100 / 100 | 100 / 100 |
+
+O mobile fica na fronteira da meta de 90 (execuções entre 83 e 92); causas e otimizações em [ARCHITECTURE.md §14](./ARCHITECTURE.md#14-performance-e-lighthouse).
 
 ## Stack
 
@@ -13,7 +30,7 @@ Implementação do desafio frontend da Jungle Gaming: um marketplace de NFTs em 
 | --- | --- |
 | Interface | React 19 + TypeScript (strict) |
 | Build | Vite 8 |
-| Roteamento | TanStack Router (rotas por arquivo, search params validados com zod) |
+| Roteamento | TanStack Router (rotas por arquivo, estado do catálogo na URL, rotas privadas protegidas) |
 | Estado remoto | TanStack Query 5 |
 | Cliente HTTP | Axios (interceptors de sessão, normalização de erros) |
 | Tempo real | Socket.IO (`socket.io-client`) |
@@ -126,7 +143,7 @@ Ids de NFT úteis: `emerald-ape-042`, `sage-nomad-009`, `ivory-baron-088`, `gold
 
 ```bash
 pnpm exec playwright install chromium   # primeira vez
-pnpm test:e2e                           # ~100 testes (desktop + mobile), ~2 min
+pnpm test:e2e                           # 114 testes (desktop + mobile), ~2 min
 pnpm test:report
 ```
 
@@ -148,10 +165,12 @@ Cobertura (um arquivo por cenário do enunciado, em `e2e/`):
 | 12 | Skeletons, feedback de falha e nova tentativa | `loading-errors.spec.ts` |
 | — | Regressão visual (início, detalhe, carrinho, pagamento × desktop/mobile) | `visual.spec.ts` |
 | — | Sem overflow horizontal em 390, 768 e 1440 px | `responsive.spec.ts` |
+| 3, 9, 10 | Relógio controlado: sessão expira **durante o checkout** (rascunho restaurado) e liquidação do pedido pendente; edição esgotada no envio | `time-and-checkout.spec.ts` |
 
 - Cada teste parte de um **contexto novo** (localStorage vazio → mock volta ao seed) e define o cenário antes do carregamento.
 - Eventos em tempo real são disparados pela **API de controle do mock**, que altera o banco simulado; o evento chega pelo `socket.io-client` real. REST passa pelos handlers MSW.
-- Relatório HTML em `playwright-report/`; traces, vídeos e screenshots das falhas em `test-results/`.
+- Cenários sensíveis a tempo usam **relógio controlado** (`page.clock`): o teste avança o tempo em vez de esperar.
+- Relatório HTML gerado em `playwright-report/` (`pnpm test:report`); uma execução completa está versionada em [`docs/playwright-report/`](./docs/playwright-report/index.html). Em falhas, trace, vídeo e screenshot ficam em `test-results/`.
 - As baselines visuais ficam em `e2e/__screenshots__/<plataforma>/` (geradas em Windows/Chromium). Em outro SO, gere as suas com `pnpm test:e2e:update`.
 
 ## Estrutura
@@ -169,4 +188,6 @@ mocks/          banco simulado, seed, cenários, handlers REST, servidor Socket.
 e2e/            testes Playwright + baselines visuais
 lighthouse/     configuração, script e relatórios (local/ e producao/)
 docs/figma/     frames exportados do Figma (referência visual)
+docs/assets/    ilustrações originais exportadas do Figma
+docs/playwright-report/  relatório HTML de uma execução completa dos testes
 ```

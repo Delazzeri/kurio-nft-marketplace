@@ -6,6 +6,7 @@ import { networks } from '@/api/constants'
 import type { Edition, NftDetail } from '@/api/contracts'
 import { Price } from '@/components/Price'
 import { QuantityStepper } from '@/components/QuantityStepper'
+import { SOCIAL_ICONS } from '@/components/social-icons'
 import { ErrorState, NotFound } from '@/components/states'
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
@@ -122,7 +123,7 @@ function DetailBody({ nft }: { nft: NftDetail }) {
       ? `Você já tem o máximo permitido desta edição no carrinho.`
       : edition.available <= 5
         ? `Restam ${edition.available} unidade(s) desta edição.`
-        : `Limite de ${Math.min(edition.available, MAX_PER_ITEM)} por pedido.`
+        : ''
 
   const editionPicker = (
     <fieldset>
@@ -140,9 +141,8 @@ function DetailBody({ nft }: { nft: NftDetail }) {
               aria-label={`Edição ${e.label}, ${formatEth(e.price)}${unavailable ? ', indisponível' : ''}`}
               onClick={() => selectEdition(e.id)}
               className={cn(
-                'rounded-full border px-2.5 py-0.5 text-xs transition-colors',
-                selected ? 'border-primary bg-primary/15 text-price' : 'border-[#4f3421] hover:border-primary',
-                unavailable && 'text-muted-foreground line-through',
+                'rounded-full border px-2 py-0.5 text-xs tracking-wide transition-colors',
+                selected ? 'border-primary text-price' : 'border-primary/35 text-muted-foreground hover:border-primary',
               )}
             >
               {e.label}
@@ -162,10 +162,6 @@ function DetailBody({ nft }: { nft: NftDetail }) {
       <div className="flex gap-1">
         <dt>Coleção:</dt>
         <dd>{nft.collection.name}</dd>
-      </div>
-      <div className="flex gap-1">
-        <dt>Rede:</dt>
-        <dd>{nft.networks.map(networkLabel).join(' · ')}</dd>
       </div>
       <div className="flex gap-1">
         <dt>Atributos:</dt>
@@ -213,7 +209,7 @@ function DetailBody({ nft }: { nft: NftDetail }) {
           <p className="text-sm leading-relaxed text-muted-foreground">{nft.description}</p>
           {editionPicker}
           {meta}
-          <p className="text-xs text-muted-foreground" aria-live="polite">
+          <p className="text-xs text-muted-foreground empty:hidden" aria-live="polite">
             {stockHint}
           </p>
         </div>
@@ -344,20 +340,24 @@ function DetailBody({ nft }: { nft: NftDetail }) {
                 </Button>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground" aria-live="polite">
+            <p className="text-xs text-muted-foreground empty:hidden" aria-live="polite">
               {stockHint}
             </p>
             {meta}
-            <div className="flex items-center gap-3 text-sm font-bold">
+            <div className="flex items-center gap-2.5 text-sm font-bold">
               Compartilhar este NFT:
               <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" aria-label="Compartilhar no LinkedIn (nova aba)" className="hover:text-primary">
-                in
+                <svg aria-hidden viewBox="0 0 24 24" className="size-4 fill-current">
+                  <path d={SOCIAL_ICONS.linkedin} />
+                </svg>
               </a>
               <a href={`mailto:?subject=${encodeURIComponent(nft.name)}&body=${encodeURIComponent(shareUrl)}`} aria-label="Compartilhar por e-mail" className="hover:text-primary">
                 <Mail aria-hidden className="size-4" />
               </a>
-              <a href={`https://x.com/intent/tweet?url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" aria-label="Compartilhar no X (nova aba)" className="hover:text-primary">
-                𝕏
+              <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}`} target="_blank" rel="noopener noreferrer" aria-label="Compartilhar no Twitter (nova aba)" className="hover:text-primary">
+                <svg aria-hidden viewBox="0 0 24 24" className="size-4 fill-current">
+                  <path d={SOCIAL_ICONS.twitter} />
+                </svg>
               </a>
             </div>
           </div>

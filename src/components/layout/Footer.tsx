@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { type FormEvent } from 'react'
 import { categories } from '@/api/constants'
 import { notAvailable } from '@/components/states'
+import { SOCIAL_ICONS } from '@/components/social-icons'
 import { Button } from '@/components/ui/button'
 
 const features = [
@@ -11,16 +12,16 @@ const features = [
 ]
 
 const social = [
-  { label: 'Facebook', href: 'https://www.facebook.com', path: 'M14 8h3V4h-3c-2.8 0-4 1.7-4 4.3V10H7v4h3v8h4v-8h3l1-4h-4V8.6c0-.4.3-.6.6-.6Z' },
-  { label: 'Instagram', href: 'https://www.instagram.com', path: 'M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4Zm5 5a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm5.5-1.5a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z' },
-  { label: 'X (Twitter)', href: 'https://x.com', path: 'M4 4l7 9-7 7h2l6-6 4 6h4l-7-10 6-6h-2l-5 5-3-5H4Z' },
-  { label: 'LinkedIn', href: 'https://www.linkedin.com', path: 'M5 9h3v11H5V9Zm1.5-5a1.8 1.8 0 1 1 0 3.6 1.8 1.8 0 0 1 0-3.6ZM10 9h3v1.6c.5-.9 1.7-1.8 3.4-1.8 3 0 3.6 2 3.6 4.6V20h-3v-5.8c0-1.4 0-3-1.9-3s-2.1 1.4-2.1 2.9V20h-3V9Z' },
-  { label: 'YouTube', href: 'https://www.youtube.com', path: 'M21 8.2a2.6 2.6 0 0 0-1.8-1.8C17.6 6 12 6 12 6s-5.6 0-7.2.4A2.6 2.6 0 0 0 3 8.2 27 27 0 0 0 2.6 12c0 1.3.1 2.6.4 3.8a2.6 2.6 0 0 0 1.8 1.8C6.4 18 12 18 12 18s5.6 0 7.2-.4a2.6 2.6 0 0 0 1.8-1.8c.3-1.2.4-2.5.4-3.8s-.1-2.6-.4-3.8ZM10 15V9l5 3-5 3Z' },
+  { label: 'Facebook', href: 'https://www.facebook.com', path: SOCIAL_ICONS.facebook },
+  { label: 'Instagram', href: 'https://www.instagram.com', path: SOCIAL_ICONS.instagram },
+  { label: 'Twitter', href: 'https://twitter.com', path: SOCIAL_ICONS.twitter },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com', path: SOCIAL_ICONS.linkedin },
+  { label: 'YouTube', href: 'https://www.youtube.com', path: SOCIAL_ICONS.youtube },
 ]
 
 export function WalletsPill({ className = '' }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-2 rounded-sm border border-[#5a3a22] bg-[#2b1a10] px-2.5 py-1 text-[9px] font-bold tracking-wider text-price ${className}`}>
+    <span className={`inline-flex w-max max-w-full flex-wrap items-center gap-x-1.5 self-start rounded-sm border border-[#5a3a22] bg-[#2b1a10] px-2 py-1 text-[9px] font-bold tracking-wide whitespace-nowrap text-price ${className}`}>
       METAMASK <span aria-hidden>·</span> WALLETCONNECT <span aria-hidden>·</span> COINBASE
     </span>
   )
@@ -132,7 +133,7 @@ export function Footer() {
                   className="flex size-8 items-center justify-center rounded-sm border border-primary text-primary hover:bg-primary/10"
                 >
                   <svg aria-hidden viewBox="0 0 24 24" className="size-4 fill-current">
-                    <path d={s.path} />
+                    <path d={s.path} fillRule="evenodd" />
                   </svg>
                 </a>
               </li>
